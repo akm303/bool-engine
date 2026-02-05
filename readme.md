@@ -1,5 +1,5 @@
 # Truthtables (V1)
-Custom Python Library For Truth Tables 
+Custom Python Library For Implmentation Of Boolean Logic and Truth Table Display
 
 
 ## Features
