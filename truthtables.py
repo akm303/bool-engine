@@ -30,30 +30,30 @@ class Literal:
 def print_table(variables,operations=['and','or','xor','xnor']):
     n = len(variables) #number of variables
     ops = len(operations)
-    variable_values = {var:(0,1) for var in variables}
 
     def bin_combinations(variables,levels):
         values = (0,1)
         if levels == 0:
             return values
-        lowervalues = bin_combinations(variables,levels-1)
-        return [(v1,*v2) if isinstance(v2, Iterable) else (v1,v2) for v1 in values for v2 in lowervalues]
+        return [(v1,*v2) if isinstance(v2, Iterable) else (v1,v2) for v1 in values for v2 in bin_combinations(variables,levels-1)]
 
     
     rows = bin_combinations(variables,n-1)
 
+    col_widths = []
     cols = []
-    for var in variable_values.keys():
+    for var in variables:
         col_title = f"{var}"
-        cols.append((len(col_title),col_title))
+        col_widths.append(len(col_title))
+        cols.append(col_title)
 
-    title_lens = [t[0] for t in cols]
-    header = '|' + ' | '.join([t[1] for t in cols]) + ' |'
+    header = '|' + ' | '.join(cols) + ' |'
     bar = '-'*len(header)
 
     lines = [bar,header,bar]
     for vals in rows:
-        row = [f"{v:{title_lens[i]}}" for i,v in enumerate(vals)]
+        print(rows, vals)
+        row = [f"{v:{col_widths[i]}}" for i,v in enumerate(vals)]
         lines.append('|'+' | '.join(row)+' |')
     lines.append(bar)
 
@@ -65,16 +65,37 @@ def print_table(variables,operations=['and','or','xor','xnor']):
 
 
 
-def test():
+def full_test():
+
+    def test_literal(val,pos):
+        try:
+            var = Literal(val,pos)
+        except Exception as e:
+            print(e)
+        return var
+            
+    def test_table(varlist):
+        try:
+            print_table(varlist)
+        except Exception as e:
+            print(e)
+        print()
+
+
+
     print("test 1: create literals")
-    var_1 = Literal('A',value=True)
+    var_1 = test_literal('A',True)
+    var_2 = test_literal('A',False)
     print(var_1)
-    var_2 = Literal('A',value=False)
     print(var_2)
+    print()
 
     print("test 2: print table")
     # given a variable, display all Truth values 
-    print_table([var_1,var_2,Literal('B',value=True)])
+    test_table([var_1])
+    test_table([var_1,var_2])
+    test_table([var_1,var_2,Literal('B',value=True)])
+
     
     # given a pair of variables, display all Truth values (for  and/or/xor/xnor)
 
@@ -84,6 +105,6 @@ def test():
     return
 
 if __name__ == "__main__":
-    test()
+    full_test()
 
 
