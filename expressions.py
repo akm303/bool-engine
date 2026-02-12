@@ -81,28 +81,6 @@ def test_variable():
                 print(f"{test_name} Fails: Variable{var_data} not created")
     return variables
 
-    # v1 = Variable("A", True)
-    # v1HasValue = v1.hasValue()
-    # print(f"v1: {v1}")
-    # print(f"has value?: {v1HasValue}")
-
-    # v2 = Variable("B", False)
-    # v2HasValue = v2.hasValue()
-    # print(f"v2: {v2}")
-    # print(f"has value?: {v2HasValue}")
-
-    # v3 = Variable("C", 1)
-    # v3HasValue = v3.hasValue()
-    # print(f"v3: {v3}")
-    # print(f"has value?: {v3HasValue}")
-
-    # v4 = Variable("D", 0)
-    # v4HasValue = v4.hasValue()
-    # print(f"v4: {v4}")
-    # print(f"has value?: {v4HasValue}")
-
-
-# def test_literal():
 
 if __name__ == "__main__":
     result = test_variable()
