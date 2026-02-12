@@ -56,7 +56,8 @@ def test_variable():
         {VAR_DATA_KEY: ("D", 0), TEST_PASSES_KEY: False},
         {VAR_DATA_KEY: ("E", None), TEST_PASSES_KEY: False},
         {VAR_DATA_KEY: (5, True), TEST_PASSES_KEY: False},
-        {VAR_DATA_KEY: (5, 1), TEST_PASSES_KEY: False},
+        {VAR_DATA_KEY: (6, 1), TEST_PASSES_KEY: False},
+        {VAR_DATA_KEY: ("H", True), TEST_PASSES_KEY: True},
     ]
 
     variables = []
