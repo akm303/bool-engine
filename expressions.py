@@ -1,3 +1,5 @@
+from pprint import pformat
+from collections import namedtuple
 from itertools import count
 
 # -------------------------- #
@@ -97,134 +99,190 @@ class Clause:
 # -------------------------- #
 #           tests            #
 # -------------------------- #
-def bar():
-    print("-" * 40)
-
-
-def objstr_list(var_list: list):
-    # return f"[{', '.join(map(str, var_list))}]"
-    return list(map(str, var_list))
-
-
-def test_variable():
-    VAR_DATA_KEY = "variable"
-    TEST_PASSES_KEY = "test_passes"
-
-    # test order matters
-    var_tests = [
-        {VAR_DATA_KEY: ("A", True), TEST_PASSES_KEY: True},  # valid
-        {VAR_DATA_KEY: ("B", False), TEST_PASSES_KEY: True},  # valid
-        {
-            VAR_DATA_KEY: ("C", 1),
-            TEST_PASSES_KEY: False,
-        },  # invalid because value must be a bool
-        {
-            VAR_DATA_KEY: ("D", 0),
-            TEST_PASSES_KEY: False,
-        },  # invalid because value must be a bool
-        {
-            VAR_DATA_KEY: ("E", None),
-            TEST_PASSES_KEY: False,
-        },  # invalid because value must be a bool
-        {
-            VAR_DATA_KEY: (5, True),
-            TEST_PASSES_KEY: False,
-        },  # invalid because variable title must be string
-        {
-            VAR_DATA_KEY: (6, 1),
-            TEST_PASSES_KEY: False,
-        },  # invalid because variable title must be string
-        {VAR_DATA_KEY: ("H", True), TEST_PASSES_KEY: True},  # valid (check id counter)
-        {VAR_DATA_KEY: ("I'", True), TEST_PASSES_KEY: True},  # valid
-        {VAR_DATA_KEY: ("J'", False), TEST_PASSES_KEY: True},  # valid
-    ]
-
-    variables = []
-    for test_data in var_tests:
-        var_data = test_data[VAR_DATA_KEY]
-        should_pass = test_data[TEST_PASSES_KEY]
-
-        test_name = var_data[0]
-        var = None
-        bar()
-        try:
-            var = Variable(*var_data)
-            print(f"{test_name} Passes:")
-            print(f"        : created {var}")
-            print(f"        : {var} has value? {var.hasValue()}")
-
-            variables.append(var)
-
-        except Exception as e:
-            if not should_pass and isinstance(e, AssertionError):
-                print(f"{test_name} Passes: assertion caught on Variable{var_data}")
-            else:
-                print(f"{test_name} Fails: Variable{var_data} not created")
-    bar()
-
-    complements = []
-    var: Variable
-    for var in variables:
-        complements.append(var.complement())
-    print(
-        f"complements to:\n    {objstr_list(variables)}\n => {objstr_list(complements)}"
-    )
-    variables += complements
-
-    return variables
-
-
-def test_clause(variables):
-    print(f"testing clauses on {objstr_list(variables)}")
-    # vardict = {i: var for i, var in enumerate(variables)}
-    clauses = []
-
-    clausevars = variables[:3]
-    # vardict[0],vardict[1],vardict[2]
-    c1 = Clause(3, clausevars, CNF_KEY)
-    print(c1)
-    clauses.append(c1)
-
-    return clauses
 
 
 if __name__ == "__main__":
 
-    def testtitle(test_title):
+    def bar(to_print=True):
+        if not to_print:
+            return
+        print("-" * 80)
+
+    def testtitle(test_title, to_print=True):
+        if not to_print:
+            return
         pad = 4
         n = len(test_title)
         title_bar = "-" * (n + 2 * pad)
-        print(f"#{title_bar}#")
-        print(f"#" + " " * pad + f"{test_title.title()}" + " " * pad + "#")
-        # print(f"#  {test_title.title()}  #")
-        print(f"#{title_bar}#")
+        title_str = (
+            f"#{title_bar}#"
+            + f"\n#"
+            + " " * pad
+            + f"{test_title.title()}"
+            + " " * pad
+            + "#"
+            + f"\n#{title_bar}#"
+        )
+        print(title_str)
 
-    def testsep():
-        n = 3  # number of bars to print between tests
+    def testsep(bars=2, to_print=True):
+        if not to_print:
+            return
         print()
-        for _ in range(n):
+        for _ in range(bars):
             bar()
         print()
 
+    def objstr_list(var_list: list):
+        # return f"[{', '.join(map(str, var_list))}]"
+        return list(map(str, var_list))
+
+    def obj_str(var_list: list, indent=0):
+        # return f"[ {', '.join(objstr_list(var_list))} ]"
+        # return pformat(objstr_list(var_list),indent=indent)
+        pad = " " * indent
+        delim = ", "
+        sbracket, ebracket = "[", "]"
+        if indent:
+            delim = "\n"
+            sbracket, ebracket = "[" + delim, delim + "]"
+        return (
+            sbracket
+            + delim.join(f'{pad}"{objstr}"' for objstr in objstr_list(var_list))
+            + ebracket
+        )
+
+    def test_variable(_, main_test: bool = True):
+        VAR_DATA_KEY = "variable"
+        TEST_PASSES_KEY = "test_passes"
+        testtitle("variable test", main_test)
+
+        # test order matters
+        var_tests = [
+            {VAR_DATA_KEY: ("A", True), TEST_PASSES_KEY: True},  # valid
+            {VAR_DATA_KEY: ("B", False), TEST_PASSES_KEY: True},  # valid
+            {
+                VAR_DATA_KEY: ("C", 1),
+                TEST_PASSES_KEY: False,
+            },  # invalid because value must be a bool
+            {
+                VAR_DATA_KEY: ("D", 0),
+                TEST_PASSES_KEY: False,
+            },  # invalid because value must be a bool
+            {
+                VAR_DATA_KEY: ("E", None),
+                TEST_PASSES_KEY: False,
+            },  # invalid because value must be a bool
+            {
+                VAR_DATA_KEY: (5, True),
+                TEST_PASSES_KEY: False,
+            },  # invalid because variable title must be string
+            {
+                VAR_DATA_KEY: (6, 1),
+                TEST_PASSES_KEY: False,
+            },  # invalid because variable title must be string
+            {
+                VAR_DATA_KEY: ("H", True),
+                TEST_PASSES_KEY: True,
+            },  # valid (check id counter)
+            {VAR_DATA_KEY: ("I'", True), TEST_PASSES_KEY: True},  # valid
+            {VAR_DATA_KEY: ("J'", False), TEST_PASSES_KEY: True},  # valid
+        ]
+
+        variables = []
+        for test_data in var_tests:
+            var_data = test_data[VAR_DATA_KEY]
+            should_pass = test_data[TEST_PASSES_KEY]
+
+            test_name = var_data[0]
+            var = None
+            # bar()
+            test_str = ""
+            try:
+                var = Variable(*var_data)
+                test_str = (
+                    f"{test_name} Passes:"
+                    + f"\n        : created {var}"
+                    + f"\n        : {var} has value? {var.hasValue()}"
+                )
+                variables.append(var)
+
+            except Exception as e:
+                if not should_pass and isinstance(e, AssertionError):
+                    test_str = (
+                        f'{test_name} Passes: assertion caught on "Variable{var_data}"'
+                    )
+                else:
+                    test_str = f'{test_name} Fails: "Variable{var_data}" not created'
+
+            if main_test:
+                print(test_str)
+        bar()
+
+
+        complements = []
+        var: Variable
+        for var in variables:
+            complements.append(var.complement())
+        print(
+            f"complements to:" \
+            +f"\n    {obj_str(variables)}" \
+            +f"\n => {obj_str(complements)}"
+        )
+        variables += complements
+
+        return variables
+
+    def test_clause(variables, main_test: bool = True):
+        testtitle("clause test", main_test)
+        if main_test:
+            print(f"testing clauses on {objstr_list(variables)}")
+        clauses = []
+
+        clausevars = variables[:3]
+        c1 = Clause(3, clausevars, CNF_KEY)
+        print(c1)
+        clauses.append(c1)
+        return clauses
+
+    test_run = namedtuple("test_data", ["ttitle", "ftitle", "f"])
+
+    tests = [
+        test_run("Variable Test", "test_variable()", test_variable),
+        test_run("Clause Test", "test_clause()", test_clause),
+    ]
+
+    result = None
+    for ttuple in tests:
+        print()
+        tfunc = ttuple.f
+        ttitle = ttuple.ttitle
+        ftitle = ttuple.f.__name__ + "()"
+
+        result = tfunc(result)
+        print(f"\nresult of {ftitle}:\n{obj_str(result,indent=2)}")
+        testsep()
+
     # tests = {
-    #     'variable test':test_variable,
-    #     'clause test':test_clause
+    #     'test_variable()':test_variable,
+    #     'test_clause()':test_clause
     # }
 
-    print()
-    testtitle("variable test")
-    result = test_variable()
-    print(f"result of test_variable(): {objstr_list(result)}")
-    # test_literal()
-    testsep()
+    # result = None
+    # for ttitle,tfunc in tests.items():
+    #     print()
+    #     result = tfunc(result)
+    #     print(f"result of {ttitle}:\n{obj_str(result)}")
+    #     testsep()
+
+    # print()
+    # result = test_variable()
+    # print(f"result of test_variable():\n{obj_str(result)}")
+    # testsep()
+
+    # print()
+    # result = test_clause(result)
+    # print(f"result of test_clause():\n{obj_str(result)}")
+    # testsep()
 
     print()
-    testtitle("clause test")
-    result = test_clause(result)
-    print(f"result of test_clause(): {objstr_list(result)}")
-    print(result)
-    testsep()
-
-    print()
-
-# class CNFExpression(Expression):
