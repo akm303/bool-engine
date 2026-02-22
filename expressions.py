@@ -1,6 +1,8 @@
+import logging
 from pprint import pformat
 from collections import namedtuple
 from itertools import count, combinations
+from typing import Tuple, Any
 
 
 # -------------------------- #
@@ -54,7 +56,7 @@ class Variable:
 class Literal(Variable):
     """
     A literal is an occurrence of a variable in either natural or complementary form
-    eg. in `(x_1'+x_2)(x_1'+x_3)`
+    eg. in `(x_1' + x_2)(x_1' + x_3)`
         - first literal in this expression is `x_1`'
         - second literal in this expression is `x_2`'
     """
@@ -98,7 +100,8 @@ class Clause:
         }
 
         term = form_terms[self.form] if self.form else "?"  # default to 'unknown'
-        return f" {term} ".join(objstr_list(self.variables))
+        return "(" + f" {term} ".join(objstr_list(self.variables)) + ")"
+        # return f" {term} ".join(objstr_list(self.variables))
 
 
 # -------------------------- #
@@ -107,44 +110,59 @@ class Clause:
 
 
 if __name__ == "__main__":
+    tlogger = logging.getLogger("tests")
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    tlogger.addHandler(handler)
+    tlogger.setLevel(logging.DEBUG)
 
-    def bar(to_print=True):
-        if not to_print:
-            return
-        print("-" * 80)
+    def seperator(pfunc):
+        def wrapper():
+            print()
+            pfunc()
+            print()
 
-    def testtitle(test_title, to_print=True):
+        return wrapper
+
+    def bar(n=80):
+        return "-" * n
+
+    newline = "\n"
+    bar40 = bar(40)
+    bar80 = bar(80)
+
+    def test_title(title_str: str, to_print: bool = True):
         if not to_print:
             return
         pad = 4
-        n = len(test_title)
+        n = len(title_str)
         title_bar = "-" * (n + 2 * pad)
-        title_str = (
-            f"#{title_bar}#"
-            + f"\n#"
-            + " " * pad
-            + f"{test_title.title()}"
-            + " " * pad
-            + "#"
-            + f"\n#{title_bar}#"
+        title_block = (
+            f"#{title_bar}#",
+            f"#{' '*pad}{title_str.title()}{' '*pad}#",
+            f"#{title_bar}#",
         )
-        print(title_str)
+        return "\n".join(title_block)
 
-    def testsep(bars=2, to_print=True):
-        if not to_print:
-            return
-        print()
-        for _ in range(bars):
-            bar()
-        print()
+        # title_str = (
+        #     f"\n#{title_bar}#"
+        #     f"\n#{' '*pad}{title_str.title()}{' '*pad}#"
+        #     f"\n#{title_bar}#"
+        # )
+        # tlogger.info(title_str)
+
+    # @seperator
+    # def testsep(bars=2, to_print=True):
+    #     if not to_print:
+    #         return
+    #     for _ in range(bars):
+    #         tlogger.info(bar())
 
     def objstr_list(obj_list: list):
-        # return f"[{', '.join(map(str, obj_list))}]"
         return list(map(str, obj_list))
 
     def obj_str(obj_list: list, indent=0):
-        # return f"[ {', '.join(objstr_list(obj_list))} ]"
-        # return pformat(objstr_list(obj_list),indent=indent)
         pad = " " * indent
         delim = ", "
         sbracket, ebracket = "[", "]"
@@ -157,7 +175,7 @@ if __name__ == "__main__":
             + ebracket
         )
 
-    def test_variable(_, main_test: bool = True):
+    def test_variable(_, main_test: bool = True) -> Tuple[Any, list[str]]:
         VAR_DATA_KEY = "variable"
         TEST_PASSES_KEY = "test_passes"
 
@@ -193,6 +211,7 @@ if __name__ == "__main__":
             {VAR_DATA_KEY: ("J'", False), TEST_PASSES_KEY: True},  # valid
         ]
 
+        event_lines: list[str] = []
         variables: list[Variable] = []
         for test_data in var_tests:
             var_data = test_data[VAR_DATA_KEY]
@@ -203,12 +222,9 @@ if __name__ == "__main__":
             test_str = ""
             try:
                 var = Variable(*var_data)
-                test_str = (
-                    f"{test_name} Passes:"
-                    + f"\n        : created {var}"
-                    + f"\n        : {var} has value? {var.hasValue()}"
-                )
                 variables.append(var)
+                test_str = f"{test_name} Passes: created {var} (has value? {var.hasValue()})"
+                
 
             except Exception as e:
                 if not should_pass and isinstance(e, AssertionError):
@@ -218,21 +234,28 @@ if __name__ == "__main__":
                 else:
                     test_str = f'{test_name} Fails: "Variable{var_data}" not created'
 
+            # event_lines.append(test_str)
             if main_test:
-                print(test_str)
-        bar()
+                event_lines.append(test_str)
+                # print(test_str)
+
+        # # tlogger.info(bar80)
+        event_lines.append(bar80)
 
         complements = [var.complement() for var in variables]
-        print(
+        complements_str = (
             f"generating complements to:"
-            + f"\n    {obj_str(variables)}"
-            + f"\n => {obj_str(complements)}"
+            f"\n    {obj_str(variables)}"
+            f"\n => {obj_str(complements)}"
         )
+
+        event_lines.append(complements_str)
+        event_lines.append(bar80)
+
         variables += complements
+        return variables, event_lines
 
-        return variables
-
-    def test_clause(variables, main_test: bool = True):
+    def test_clause(variables, main_test: bool = True) -> Tuple[Any, list[str]]:
         cnf_clauses = []
         dnf_clauses = []
         k_cutoff = 6  # stop combinations at `k = k_cutoff - 1`
@@ -243,7 +266,7 @@ if __name__ == "__main__":
             combos = combinations(variables, k)
             var_combos += [c for c in combos]
 
-        for clause_vars in var_combos:
+        for i, clause_vars in enumerate(var_combos):
             cnf_clause = Clause(len(clause_vars), clause_vars, CNF_KEY)
             dnf_clause = Clause(len(clause_vars), clause_vars, DNF_KEY)
 
@@ -253,28 +276,32 @@ if __name__ == "__main__":
             # print(f"cnf_clause: {cnf_clause}")
             # print(f"dnf_clause: {dnf_clause}")
 
-        return cnf_clauses
-
-        # clausevars = variables[:3]
-        # c1 = Clause(3, clausevars, CNF_KEY)
-        # print(c1)
-        # clauses.append(c1)
-        # return clauses
+        return cnf_clauses, event_lines
 
     tests = {
         "Variable Test": test_variable,
         "Clause Test": test_clause,
     }
 
+
     result = None
     for ttitle, tfunc in tests.items():
-        print()
-        ftitle = tfunc.__name__ + "()"
+        event_lines = []
+        result, event_lines = tfunc(result)
 
-        testtitle(ttitle, to_print=True)
-        result = tfunc(result)
-        print(f"\nresult of {ftitle}:\n{obj_str(result,indent=2)}")
-        testsep()
+        ttitle = test_title(ttitle, to_print=True)
+        tresult = f"{tfunc.__name__ + '()'} result set:" f"\n{obj_str(result,indent=2)}"
+
+        event_lines = [
+            newline + ttitle,
+            newline.join(event_lines),
+            tresult,
+            bar80,
+            newline,
+            newline,
+        ]
+
+        tlogger.info("\n".join(event_lines))
 
     print()
 
@@ -291,7 +318,7 @@ if __name__ == "__main__":
     #     ttitle = ttuple.ttitle
     #     ftitle = ttuple.f.__name__ + "()"
 
-    #     testtitle(ttitle,to_print=True)
+    #     test_title(ttitle,to_print=True)
     #     result = tfunc(result)
     #     print(f"\nresult of {ftitle}:\n{obj_str(result,indent=2)}")
     #     testsep()
