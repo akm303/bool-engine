@@ -1,6 +1,7 @@
 from pprint import pformat
 from collections import namedtuple
-from itertools import count
+from itertools import count, combinations
+
 
 # -------------------------- #
 #          Objects           #
@@ -38,11 +39,16 @@ class Variable:
 
     def __str__(self):
         var_id = f"V_{self.id}" if INT_ID else f"{self.id}"
-
-        return f"{var_id}[{self.title}={int(self.value)}]"  # `V_0[A=1]`
+        # return f"{self.title}"  # `A`
+        return f"{var_id}[{self.title}]"  # `V_0[A]`
+        # return f"{var_id}[{self.title}={int(self.value)}]"  # `V_0[A=1]` # todo: use this one
         # return f"{var_id}::[{self.title}={int(self.value)}]"  # `V_0::[A=1]`
         # return f"{var_id}::{self.title}={int(self.value)}"   # `V_0::A=1`
         # return f"{var_id}::{self.title}[{int(self.value)}]"    # `V_0::A[1]`
+
+    def __repr__(self):
+        var_id = f"V_{self.id}" if INT_ID else f"{self.id}"
+        return f"{var_id}[{self.title}]"  # `V_0[A]`
 
 
 class Literal(Variable):
@@ -81,19 +87,18 @@ class Clause:
 
         self.ingest(variables)
 
-    def ingest(self, variables):
+    def ingest(self, variables: list[Variable]):
         assert (isinstance(var, Variable) for var in variables)
         self.variables = list(variables)
 
     def __str__(self):
-        term = " + " if self.form == CNF_KEY else " "
-        return term.join(objstr_list(self.variables))
+        form_terms = {
+            CNF_KEY: "+",
+            DNF_KEY: "*",
+        }
 
-
-# class Expression:
-#     def __init__(self,form,expr_str):
-#         self.form = form
-#         self.expr_str = expr_str
+        term = form_terms[self.form] if self.form else "?"  # default to 'unknown'
+        return f" {term} ".join(objstr_list(self.variables))
 
 
 # -------------------------- #
@@ -133,13 +138,13 @@ if __name__ == "__main__":
             bar()
         print()
 
-    def objstr_list(var_list: list):
-        # return f"[{', '.join(map(str, var_list))}]"
-        return list(map(str, var_list))
+    def objstr_list(obj_list: list):
+        # return f"[{', '.join(map(str, obj_list))}]"
+        return list(map(str, obj_list))
 
-    def obj_str(var_list: list, indent=0):
-        # return f"[ {', '.join(objstr_list(var_list))} ]"
-        # return pformat(objstr_list(var_list),indent=indent)
+    def obj_str(obj_list: list, indent=0):
+        # return f"[ {', '.join(objstr_list(obj_list))} ]"
+        # return pformat(objstr_list(obj_list),indent=indent)
         pad = " " * indent
         delim = ", "
         sbracket, ebracket = "[", "]"
@@ -148,14 +153,13 @@ if __name__ == "__main__":
             sbracket, ebracket = "[" + delim, delim + "]"
         return (
             sbracket
-            + delim.join(f'{pad}"{objstr}"' for objstr in objstr_list(var_list))
+            + delim.join(f'{pad}"{objstr}"' for objstr in objstr_list(obj_list))
             + ebracket
         )
 
     def test_variable(_, main_test: bool = True):
         VAR_DATA_KEY = "variable"
         TEST_PASSES_KEY = "test_passes"
-        testtitle("variable test", main_test)
 
         # test order matters
         var_tests = [
@@ -189,14 +193,13 @@ if __name__ == "__main__":
             {VAR_DATA_KEY: ("J'", False), TEST_PASSES_KEY: True},  # valid
         ]
 
-        variables = []
+        variables: list[Variable] = []
         for test_data in var_tests:
             var_data = test_data[VAR_DATA_KEY]
             should_pass = test_data[TEST_PASSES_KEY]
 
             test_name = var_data[0]
             var = None
-            # bar()
             test_str = ""
             try:
                 var = Variable(*var_data)
@@ -219,70 +222,78 @@ if __name__ == "__main__":
                 print(test_str)
         bar()
 
-
-        complements = []
-        var: Variable
-        for var in variables:
-            complements.append(var.complement())
+        complements = [var.complement() for var in variables]
         print(
-            f"complements to:" \
-            +f"\n    {obj_str(variables)}" \
-            +f"\n => {obj_str(complements)}"
+            f"generating complements to:"
+            + f"\n    {obj_str(variables)}"
+            + f"\n => {obj_str(complements)}"
         )
         variables += complements
 
         return variables
 
     def test_clause(variables, main_test: bool = True):
-        testtitle("clause test", main_test)
-        if main_test:
-            print(f"testing clauses on {objstr_list(variables)}")
-        clauses = []
+        cnf_clauses = []
+        dnf_clauses = []
+        k_cutoff = 6  # stop combinations at `k = k_cutoff - 1`
 
-        clausevars = variables[:3]
-        c1 = Clause(3, clausevars, CNF_KEY)
-        print(c1)
-        clauses.append(c1)
-        return clauses
+        # var_combos = [combinations(variables,k) for k in range(2,max_k)]
+        var_combos: list[tuple] = []
+        for k in range(2, k_cutoff):
+            combos = combinations(variables, k)
+            var_combos += [c for c in combos]
 
-    test_run = namedtuple("test_data", ["ttitle", "ftitle", "f"])
+        for clause_vars in var_combos:
+            cnf_clause = Clause(len(clause_vars), clause_vars, CNF_KEY)
+            dnf_clause = Clause(len(clause_vars), clause_vars, DNF_KEY)
 
-    tests = [
-        test_run("Variable Test", "test_variable()", test_variable),
-        test_run("Clause Test", "test_clause()", test_clause),
-    ]
+            cnf_clauses.append(cnf_clause)
+            dnf_clauses.append(dnf_clause)
+
+            # print(f"cnf_clause: {cnf_clause}")
+            # print(f"dnf_clause: {dnf_clause}")
+
+        return cnf_clauses
+
+        # clausevars = variables[:3]
+        # c1 = Clause(3, clausevars, CNF_KEY)
+        # print(c1)
+        # clauses.append(c1)
+        # return clauses
+
+    tests = {
+        "Variable Test": test_variable,
+        "Clause Test": test_clause,
+    }
 
     result = None
-    for ttuple in tests:
+    for ttitle, tfunc in tests.items():
         print()
-        tfunc = ttuple.f
-        ttitle = ttuple.ttitle
-        ftitle = ttuple.f.__name__ + "()"
+        ftitle = tfunc.__name__ + "()"
 
+        testtitle(ttitle, to_print=True)
         result = tfunc(result)
         print(f"\nresult of {ftitle}:\n{obj_str(result,indent=2)}")
         testsep()
 
-    # tests = {
-    #     'test_variable()':test_variable,
-    #     'test_clause()':test_clause
-    # }
+    print()
+
+    # test_run = namedtuple("test_data", ["ttitle", "ftitle", "f"])
+    # tests = [
+    #     test_run("Variable Test", "test_variable()", test_variable),
+    #     test_run("Clause Test", "test_clause()", test_clause),
+    # ]
 
     # result = None
-    # for ttitle,tfunc in tests.items():
+    # for ttuple in tests:
     #     print()
+    #     tfunc = ttuple.f
+    #     ttitle = ttuple.ttitle
+    #     ftitle = ttuple.f.__name__ + "()"
+
+    #     testtitle(ttitle,to_print=True)
     #     result = tfunc(result)
-    #     print(f"result of {ttitle}:\n{obj_str(result)}")
+    #     print(f"\nresult of {ftitle}:\n{obj_str(result,indent=2)}")
     #     testsep()
 
     # print()
-    # result = test_variable()
-    # print(f"result of test_variable():\n{obj_str(result)}")
-    # testsep()
-
-    # print()
-    # result = test_clause(result)
-    # print(f"result of test_clause():\n{obj_str(result)}")
-    # testsep()
-
-    print()
