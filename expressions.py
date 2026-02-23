@@ -99,7 +99,6 @@ class Clause:
             CNF_KEY: "+",
             DNF_KEY: "*",
         }
-
         term = form_terms[self.form] if self.form else "?"  # default to 'unknown'
         return "(" + f" {term} ".join(self.str_list()) + ")"
         # return f" {term} ".join(objstr_list(self.variables))
@@ -268,22 +267,21 @@ if __name__ == "__main__":
         # combine variable terms for creating Clauses
         for k in range(2, k_cutoff):
             combos = list(combinations(variables, k))
-            var_combos += [c for c in combos[:5] + combos[-5:]]
-
-        for i, clause_vars in enumerate(var_combos):
-            # if main_test and i % 5:
-            #     k = len(clause_vars)
-            #     event_lines.append(f"generating {k}SAT clauses:")
-
-            cnf_clause = Clause(len(clause_vars), clause_vars, CNF_KEY)
-            # dnf_clause = Clause(len(clause_vars), clause_vars, DNF_KEY)
-
-            cnf_clauses.append(cnf_clause)
-            # dnf_clauses.append(dnf_clause)
+            var_combos = [c for c in combos[:5] + combos[-5:]]
 
             if main_test:
-                event_lines.append(f"  generated cnf_clause: {cnf_clause}")
-                # event_lines.append(f"  generated dnf_clause: {dnf_clause}")
+                event_lines.append(f"generating {k}SAT clauses:")
+
+            for clause_vars in var_combos:
+                cnf_clause = Clause(len(clause_vars), clause_vars, CNF_KEY)
+                # dnf_clause = Clause(len(clause_vars), clause_vars, DNF_KEY)
+
+                cnf_clauses.append(cnf_clause)
+                # dnf_clauses.append(dnf_clause)
+
+                if main_test:
+                    event_lines.append(f"  generated cnf_clause: {cnf_clause}")
+                    # event_lines.append(f"  generated dnf_clause: {dnf_clause}")
 
         return cnf_clauses, event_lines
 
@@ -297,26 +295,25 @@ if __name__ == "__main__":
         # combine clause terms for creating Expressions
         for t in range(1, t_cutoff):
             combos = list(combinations(clauses, t))
-            clause_combos += [c for c in combos[:5] + combos[-5:]]
+            clause_combos = [c for c in combos[:5] + combos[-5:]]
 
-        clause_list: list[Clause]
-        for i, clause_list in enumerate(clause_combos):
-            # if main_test and i % 5:
-            #     print(clause_list)
-            #     n = len(clause_list)
-            #     k = len(clause_list[0].str_list())
-            #     event_lines.append(f"generating {k}SAT expressions of length {n}:")
-
-            form = clause_list[0].form
-            next_expression = Expression(clause_list, form)
-            all_expressions.append(next_expression)
-            
             if main_test:
-                event_lines.append(f"  generated expr: {next_expression}")
+                event_lines.append(f"generating expressions of length {t}:")
+
+            clause_list: list[Clause]
+            for i, clause_list in enumerate(clause_combos):
+                k = clause_list[0].k
+
+                form = clause_list[0].form
+                next_expression = Expression(clause_list, form)
+                all_expressions.append(next_expression)
+
+                if main_test:
+                    event_lines.append(f"  generated {k}SAT expr: {next_expression}")
 
         return all_expressions, event_lines
 
-    tests = {
+    tests = {  # heirarchical tests (produce results used by next test in sequence)
         "Variable Test": test_variables,
         "Clause Test": test_clauses,
         "Expression Test": test_expressions,
@@ -340,5 +337,3 @@ if __name__ == "__main__":
         ]
 
         tlogger.info("\n".join(event_lines))
-
-    print()
