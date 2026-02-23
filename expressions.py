@@ -103,6 +103,8 @@ class Clause:
         return "(" + f" {term} ".join(objstr_list(self.variables)) + ")"
         # return f" {term} ".join(objstr_list(self.variables))
 
+        
+
 
 # -------------------------- #
 #           tests            #
@@ -144,20 +146,6 @@ if __name__ == "__main__":
             f"#{title_bar}#",
         )
         return "\n".join(title_block)
-
-        # title_str = (
-        #     f"\n#{title_bar}#"
-        #     f"\n#{' '*pad}{title_str.title()}{' '*pad}#"
-        #     f"\n#{title_bar}#"
-        # )
-        # tlogger.info(title_str)
-
-    # @seperator
-    # def testsep(bars=2, to_print=True):
-    #     if not to_print:
-    #         return
-    #     for _ in range(bars):
-    #         tlogger.info(bar())
 
     def objstr_list(obj_list: list):
         return list(map(str, obj_list))
@@ -213,33 +201,27 @@ if __name__ == "__main__":
 
         event_lines: list[str] = []
         variables: list[Variable] = []
-        for test_data in var_tests:
-            var_data = test_data[VAR_DATA_KEY]
-            should_pass = test_data[TEST_PASSES_KEY]
+        for test_case in var_tests:
+            var_data = test_case[VAR_DATA_KEY]
+            should_pass = test_case[TEST_PASSES_KEY]
 
-            test_name = var_data[0]
+            tname = var_data[0]
             var = None
             test_str = ""
             try:
                 var = Variable(*var_data)
                 variables.append(var)
-                test_str = f"{test_name} Passes: created {var} (has value? {var.hasValue()})"
-                
+                test_str = f"Passes: created {var} :: (has value? {var.hasValue()})"
 
             except Exception as e:
                 if not should_pass and isinstance(e, AssertionError):
-                    test_str = (
-                        f'{test_name} Passes: assertion caught on "Variable{var_data}"'
-                    )
+                    test_str = f'Passes: assert caught on "Variable{var_data}"'
                 else:
-                    test_str = f'{test_name} Fails: "Variable{var_data}" not created'
+                    test_str = f'Fails: "Variable{var_data}" not created'
 
-            # event_lines.append(test_str)
             if main_test:
-                event_lines.append(test_str)
-                # print(test_str)
+                event_lines.append(f"  Test {tname:<2} {test_str}")
 
-        # # tlogger.info(bar80)
         event_lines.append(bar80)
 
         complements = [var.complement() for var in variables]
@@ -258,10 +240,9 @@ if __name__ == "__main__":
     def test_clause(variables, main_test: bool = True) -> Tuple[Any, list[str]]:
         cnf_clauses = []
         dnf_clauses = []
-        k_cutoff = 6  # stop combinations at `k = k_cutoff - 1`
 
-        # var_combos = [combinations(variables,k) for k in range(2,max_k)]
         var_combos: list[tuple] = []
+        k_cutoff = 6  # stop combinations at `k = k_cutoff - 1`
         for k in range(2, k_cutoff):
             combos = combinations(variables, k)
             var_combos += [c for c in combos]
@@ -273,16 +254,12 @@ if __name__ == "__main__":
             cnf_clauses.append(cnf_clause)
             dnf_clauses.append(dnf_clause)
 
-            # print(f"cnf_clause: {cnf_clause}")
-            # print(f"dnf_clause: {dnf_clause}")
-
         return cnf_clauses, event_lines
 
     tests = {
         "Variable Test": test_variable,
         "Clause Test": test_clause,
     }
-
 
     result = None
     for ttitle, tfunc in tests.items():
@@ -304,23 +281,3 @@ if __name__ == "__main__":
         tlogger.info("\n".join(event_lines))
 
     print()
-
-    # test_run = namedtuple("test_data", ["ttitle", "ftitle", "f"])
-    # tests = [
-    #     test_run("Variable Test", "test_variable()", test_variable),
-    #     test_run("Clause Test", "test_clause()", test_clause),
-    # ]
-
-    # result = None
-    # for ttuple in tests:
-    #     print()
-    #     tfunc = ttuple.f
-    #     ttitle = ttuple.ttitle
-    #     ftitle = ttuple.f.__name__ + "()"
-
-    #     test_title(ttitle,to_print=True)
-    #     result = tfunc(result)
-    #     print(f"\nresult of {ftitle}:\n{obj_str(result,indent=2)}")
-    #     testsep()
-
-    # print()
