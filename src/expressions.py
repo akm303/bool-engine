@@ -120,6 +120,11 @@ class Expression:
         return str_list(self.clauses)
 
 
+# ------------------------------- #
+#          Helper Funcs           #
+# ------------------------------- #
+
+
 def str_list(obj_list: list):
     """converts list of objects into a list of their strings"""
     return list(map(str, obj_list))
@@ -141,11 +146,15 @@ def obj_str(obj_list: list, indent=0):
 
 
 # -------------------------- #
-#           tests            #
+#         local main         #
 # -------------------------- #
 
-
 if __name__ == "__main__":
+
+    # -------------------------- #
+    #           tests            #
+    # -------------------------- #
+
     tlogger = logging.getLogger("tests")
     handler = logging.StreamHandler()
     formatter = logging.Formatter("[%(levelname)s] %(message)s")
@@ -162,6 +171,7 @@ if __name__ == "__main__":
         return wrapper
 
     def bar(n=80):
+        """returns a bar ('-') string of specified length n"""
         return "-" * n
 
     newline = "\n"
@@ -173,7 +183,7 @@ if __name__ == "__main__":
             return
         pad = 4
         n = len(title_str)
-        title_bar = "-" * (n + 2 * pad)
+        title_bar = bar(n + 2 * pad)
         title_block = (
             f"#{title_bar}#",
             f"#{' '*pad}{title_str.title()}{' '*pad}#",
