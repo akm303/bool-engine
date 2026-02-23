@@ -41,8 +41,8 @@ class Variable:
 
     def __str__(self):
         var_id = f"V_{self.id}" if INT_ID else f"{self.id}"
-        # return f"{self.title}"  # `A`
-        return f"{var_id}[{self.title}]"  # `V_0[A]`
+        return f"{self.title}"  # `A`
+        # return f"{var_id}[{self.title}]"  # `V_0[A]`
         # return f"{var_id}[{self.title}={int(self.value)}]"  # `V_0[A=1]` # todo: use this one
         # return f"{var_id}::[{self.title}={int(self.value)}]"  # `V_0::[A=1]`
         # return f"{var_id}::{self.title}={int(self.value)}"   # `V_0::A=1`
@@ -51,6 +51,7 @@ class Variable:
     def __repr__(self):
         var_id = f"V_{self.id}" if INT_ID else f"{self.id}"
         return f"{var_id}[{self.title}]"  # `V_0[A]`
+        # return f"{var_id}[{self.title}={int(self.value)}]"  # `V_0[A=1]` # todo: use this one?
 
 
 class Literal(Variable):
@@ -81,7 +82,7 @@ class Clause:
             - "(x_1 + x_2 + x_3 + x_5)"
     """
 
-    def __init__(self, k: int, variables: list, form: str):
+    def __init__(self, k: int, variables: list[Variable], form: str):
         assert form in [CNF_KEY, DNF_KEY]
         self.k = k
         self.variables = []
@@ -100,10 +101,44 @@ class Clause:
         }
 
         term = form_terms[self.form] if self.form else "?"  # default to 'unknown'
-        return "(" + f" {term} ".join(objstr_list(self.variables)) + ")"
+        return "(" + f" {term} ".join(self.str_list()) + ")"
         # return f" {term} ".join(objstr_list(self.variables))
 
-        
+    def str_list(self):
+        return str_list(self.variables)
+
+
+class Expression:
+    def __init__(self, clauses: list[Clause], clause_form):
+        self.clauses = clauses
+        self.form = clause_form
+
+    def __str__(self):
+        return "".join(self.str_list())
+
+    def str_list(self):
+        """returns a string of all clauses"""
+        return str_list(self.clauses)
+
+
+def str_list(obj_list: list):
+    """converts list of objects into a list of their strings"""
+    return list(map(str, obj_list))
+
+
+def obj_str(obj_list: list, indent=0):
+    """converts list of objects into a formatted string"""
+    pad = " " * indent
+    delim = ", "
+    sbracket, ebracket = "[", "]"
+    if indent:
+        delim = "\n"
+        sbracket, ebracket = "[" + delim, delim + "]"
+    return (
+        sbracket
+        + delim.join(f'{pad}"{objstr}"' for objstr in str_list(obj_list))
+        + ebracket
+    )
 
 
 # -------------------------- #
@@ -147,25 +182,10 @@ if __name__ == "__main__":
         )
         return "\n".join(title_block)
 
-    def objstr_list(obj_list: list):
-        return list(map(str, obj_list))
-
-    def obj_str(obj_list: list, indent=0):
-        pad = " " * indent
-        delim = ", "
-        sbracket, ebracket = "[", "]"
-        if indent:
-            delim = "\n"
-            sbracket, ebracket = "[" + delim, delim + "]"
-        return (
-            sbracket
-            + delim.join(f'{pad}"{objstr}"' for objstr in objstr_list(obj_list))
-            + ebracket
-        )
-
-    def test_variable(_, main_test: bool = True) -> Tuple[Any, list[str]]:
+    def test_variables(_, main_test: bool = True) -> Tuple[Any, list[str]]:
         VAR_DATA_KEY = "variable"
         TEST_PASSES_KEY = "test_passes"
+        event_lines: list[str] = []  # hold strings regarding test events
 
         # test order matters
         var_tests = [
@@ -199,8 +219,8 @@ if __name__ == "__main__":
             {VAR_DATA_KEY: ("J'", False), TEST_PASSES_KEY: True},  # valid
         ]
 
-        event_lines: list[str] = []
         variables: list[Variable] = []
+        event_lines.append("running tests:")
         for test_case in var_tests:
             var_data = test_case[VAR_DATA_KEY]
             should_pass = test_case[TEST_PASSES_KEY]
@@ -237,28 +257,69 @@ if __name__ == "__main__":
         variables += complements
         return variables, event_lines
 
-    def test_clause(variables, main_test: bool = True) -> Tuple[Any, list[str]]:
-        cnf_clauses = []
-        dnf_clauses = []
+    def test_clauses(variables, main_test: bool = True) -> Tuple[Any, list[str]]:
+        event_lines: list[str] = []  # hold strings regarding test events
 
+        cnf_clauses = []
+        # dnf_clauses = []
         var_combos: list[tuple] = []
-        k_cutoff = 6  # stop combinations at `k = k_cutoff - 1`
+        k_cutoff = 4  # 6  # stop combinations at `k = k_cutoff - 1`
+
+        # combine variable terms for creating Clauses
         for k in range(2, k_cutoff):
-            combos = combinations(variables, k)
-            var_combos += [c for c in combos]
+            combos = list(combinations(variables, k))
+            var_combos += [c for c in combos[:5] + combos[-5:]]
 
         for i, clause_vars in enumerate(var_combos):
+            # if main_test and i % 5:
+            #     k = len(clause_vars)
+            #     event_lines.append(f"generating {k}SAT clauses:")
+
             cnf_clause = Clause(len(clause_vars), clause_vars, CNF_KEY)
-            dnf_clause = Clause(len(clause_vars), clause_vars, DNF_KEY)
+            # dnf_clause = Clause(len(clause_vars), clause_vars, DNF_KEY)
 
             cnf_clauses.append(cnf_clause)
-            dnf_clauses.append(dnf_clause)
+            # dnf_clauses.append(dnf_clause)
+
+            if main_test:
+                event_lines.append(f"  generated cnf_clause: {cnf_clause}")
+                # event_lines.append(f"  generated dnf_clause: {dnf_clause}")
 
         return cnf_clauses, event_lines
 
+    def test_expressions(clauses, main_test: bool = True) -> Tuple[Any, list[str]]:
+        event_lines: list[str] = []  # hold strings regarding test events
+
+        all_expressions = []
+        clause_combos: list[tuple] = []
+        t_cutoff = 4  # stop term combinations at t = t_cutoff - 1
+
+        # combine clause terms for creating Expressions
+        for t in range(1, t_cutoff):
+            combos = list(combinations(clauses, t))
+            clause_combos += [c for c in combos[:5] + combos[-5:]]
+
+        clause_list: list[Clause]
+        for i, clause_list in enumerate(clause_combos):
+            # if main_test and i % 5:
+            #     print(clause_list)
+            #     n = len(clause_list)
+            #     k = len(clause_list[0].str_list())
+            #     event_lines.append(f"generating {k}SAT expressions of length {n}:")
+
+            form = clause_list[0].form
+            next_expression = Expression(clause_list, form)
+            all_expressions.append(next_expression)
+            
+            if main_test:
+                event_lines.append(f"  generated expr: {next_expression}")
+
+        return all_expressions, event_lines
+
     tests = {
-        "Variable Test": test_variable,
-        "Clause Test": test_clause,
+        "Variable Test": test_variables,
+        "Clause Test": test_clauses,
+        "Expression Test": test_expressions,
     }
 
     result = None
