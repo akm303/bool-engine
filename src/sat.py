@@ -17,10 +17,10 @@ class CSP:
 
     def solve(self, algorithm):
         assignment = {}
-        print(f"variables: {self.variables}")
-        print(f"domains: {self.domains}")
-        print(f"constraints:\n{pformat(self.constraints)}")
-        print()
+        # print(f"variables: {self.variables}")
+        # print(f"domains: {self.domains}")
+        # print(f"constraints:\n{pformat(self.constraints)}")
+        # print()
         self.solution = algorithm(
             self.variables, self.domains, self.constraints, assignment
         )
@@ -46,12 +46,16 @@ def select_unassigned_variable(variables: list, domains: dict, assignment: dict)
 def order_domain_values(var: str, domains: dict, assignment: dict):
     return domains[var]
 
+def contains_one(clause:dict):
+    return any(clause.values())
 
 def is_consistent(var: str, val: int, constraints: dict, assignment: dict) -> bool:
     print(f"\nis_consistent({assignment}) with {{{var}:{val}}}")
     clauses = constraints[var]
     for clause in clauses:
-        print("gathering assignment...")
+        print(f"gathering assignment for {clause}...")
+        rclause = package_clause(var,val,assignment,clause)
+        print(f"  result Clause: {rclause}")
         clause_assignment = {literal: get_value(literal, var, val, assignment) for literal in clause}
         # clause_assignment = [value(var, val, cvar, assignment) for cvar in clause]
         print(f"  eval(clause={clause}, A={assignment}+{{{var}:{val}}}) => Clause_Assignment={clause_assignment}")
@@ -60,12 +64,6 @@ def is_consistent(var: str, val: int, constraints: dict, assignment: dict) -> bo
         clause_result = eval_clause(clause_assignment)
         print(f"  clause result: {clause_result}")
 
-        # if any(clause_assignment):
-        #     print(f"    any({clause_assignment})==True")
-        #     continue
-        # else:
-        #     print(f"    any({clause_assignment})==True")
-        #     return False
     return True
 
 
@@ -115,10 +113,24 @@ def base_var(lit: str) -> str:
     return lit if not is_complement(lit) else lit[:-1]
 
 
-def get_value(literal:str, var:str, val:bool, assignment: dict):
+def package_clause(var: str, val: bool, assignment: dict, clause: list):
+    clause_var = {
+        literal: value if literal == base_var(literal) else not value
+        for literal, value in assignment.items()
+        if base_var(literal) in clause
+    }
+    print(f"clause variables: {clause_var}")
+    return clause_var
+    # clause_var[var]
+
+
+def get_value(literal: str, var: str, val: bool, assignment: dict):
     """get value of the literal based on either the assignment or trial variable"""
 
-    print(f"  get value(lit={literal:2}, (var={var}, val={val}, A={assignment})) from", end=" ")
+    print(
+        f"  get value(lit={literal:2}, (var={var}, val={val}, A={assignment})) from",
+        end=" ",
+    )
     bvar = base_var(literal)
     if bvar == var:
         print(f"trial (lit={literal} -> {var}) with {{{var}:{val}}}")
