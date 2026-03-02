@@ -21,13 +21,14 @@ class CSP:
 
     def solve(self):
         assignment = {}
-        print(f"self.variables: {self.variables}")
-        print(f"self.domains: {self.domains}")
-        print(f"assignment (pre): {assignment}")
+        print(f"variables: {self.variables}")
+        print(f"domains: {self.domains}")
+        print(f"constraints: {self.constraints}")
+        print()
         self.solution = self.algorithm(
             self.variables, self.domains, self.constraints, assignment
         )
-        print(f"assignment (post): {assignment}")
+        print(f"\nresulting assignment: {assignment}")
         return self.solution
 
 
@@ -40,9 +41,7 @@ def is_complete(variables: list, assignment: dict):
 def select_unassigned_variable(variables: list, domains: dict, assignment: dict):
     print()
     unassigned_vars = [var for var in variables if var not in assignment]
-    print(
-        f"assignment: {assignment}, variables: {variables}, unassigned: {unassigned_vars}"
-    )
+    # print(f"assignment: {assignment}, variables: {variables}, unassigned: {unassigned_vars}")
     return min(unassigned_vars, key=lambda var: len(domains[var]))
     # unassigned_vars = [var for var in variables if var not in assignment]
     # return min(unassigned_vars, key=lambda var: len(domains[var]))
@@ -55,14 +54,28 @@ def order_domain_values(var: str, domains: dict, assignment: dict):
 def is_consistent(var: str, value: int, constraints: dict, assignment: dict) -> bool:
     # @param {dict} constraints: {var:complement(var)}
     #       contains var's complement. if var and its complement assigned the same value, false
-    # valid_complements: bool = (constraints[var] in assignment) and (
-    #     assignment[constraints[var]] == assignment[var]
-    # )
-    valid_complements: bool = (constraints[var] in assignment) and (
-        value == assignment[var]
-    )
-    print(f"valid complements? {valid_complements} (var={var},val={value},constraints={constraints},assignment={assignment})")
-    return valid_complements  # and evaluates_to_true
+    variable_clauses = constraints[var]
+    print(f"is_consistent() => constraints[{var}]={variable_clauses}")
+
+    clause_assignment = {}
+    for constraint_set in variable_clauses:
+        print(f"constraint_set: {constraint_set}")
+        assignment_vals = [literal_value(lit,assignment) for lit in constraint_set]
+        print(f"assignment_vals: {assignment_vals}")
+
+
+    # clause_assignment = {
+    #     literal: value if literal == var else literal_value(literal, assignment)
+    #     for literal in constraints
+    # }
+    print(f"clause assignment: {clause_assignment}")
+    if any(val == None for val in clause_assignment.values()):
+        print("values unassigned, continuing")
+        return True
+    print(" (evaluating)")
+    evaluate_clause(clause_assignment)
+    return True
+    # evaluate_clause(var,value,assigment)
 
 
 def backtrack(variables: list, domains: dict, constraints: dict, assignment: dict):
@@ -73,7 +86,7 @@ def backtrack(variables: list, domains: dict, constraints: dict, assignment: dic
     for value in order_domain_values(var, domains, assignment):
         if is_consistent(var, value, constraints, assignment):
             assignment[var] = value
-            result = backtrack(variables, domains, assignment)
+            result = backtrack(variables, domains, constraints, assignment)
             if result is not None:
                 return result
             del assignment[var]
@@ -96,11 +109,48 @@ cnf_test_expressions = [
 ]
 
 
-def order(var_set: set):
-    return sorted(list(var_set))  # eg. (v1,v1',v2,v2',...)
+def order(var_set: set[str]) -> list[str]:
+    return sorted(list(var_set))  # eg. (v1,v2,...)
 
 
-def parse_input(input_str: str):
+def is_complement(var: str) -> bool:
+    result = "'" in var
+    print(f"  is_complement({var})? {result}")
+    return result
+
+
+def complement(lit: str) -> str:
+    return lit[:-1] if is_complement(lit) else lit + "'"
+
+def base_var(lit:str) -> str:
+    result = lit if not is_complement(lit) else lit[:-1]
+    return result
+
+def literal_value(lit: str, assignment: dict) -> bool:
+    var = base_var(lit)
+    val = not assignment.get(var) if is_complement(lit) else assignment.get(var)
+    # val = not assignment[var] if is_complement(lit) else assignment[var]
+    print(f"result: {lit} value: {val} ({var}={assignment.get(var)})")
+    return val
+
+
+# def evaluate_clause(var:str, assignment:dict, clauses:dict[int,list[str]]):
+#     print(f"variable: {var}")
+#     print(f"assignment: {assignment}")
+#     print(f"clauses: {clauses}") # clauses with var literals
+#     for clause_id,clause_literals in clauses.items():
+#         literal_values = [assignment[literal] for literal in clause_literals]
+#         print(f"{clause_id} literal_values: {literal_values}")
+
+
+def evaluate_clause(assignment: dict) -> bool:
+    """evaluate clause in cnf form (ie. sum assigned clause variables)"""
+    value_sum = sum(assignment.values())
+    print(f"  clause evaluation(): value_sum: {value_sum}")
+    return value_sum > 0
+
+
+def parse_input(input_str: str) -> dict[int, list[str]]:
     """parse input expression into variables"""
     expression = input_str.replace(" ", "")
 
@@ -112,59 +162,29 @@ def parse_input(input_str: str):
     return clauses
 
 
-def complement(var):
-    var_is_complement = "'" in var
-    return var[:-1] if var_is_complement else var + "'"
-
-
-def add_complements(variables: set, complements: dict):
-    for var1 in variables:
-        # associate var with its complement
-        var2 = complement(var1)
-        print(f"{var1:4}s complement is {var2:4}", end=" ")
-        if var2 in variables:
-            print("(in variables)")
-            complements[var1] = var2
-        else:
-            print("(not in variables)")
-
-
 def main():
     # input and parse expression data
     input_str = cnf_test_expressions[2]
+    print(f"input: {input_str}")
     clause_dict = parse_input(input_str)
 
-    var_set = set()
-    for clause_id, variables in clause_dict.items():
-        print(f"clause {clause_id}: variables [{', '.join(variables)}]")
-        for var in variables:
-            var_set.add(var)
+    var_set: set[str] = set()
+    constraints = {}
+    for clause_id, literals in clause_dict.items():
+        print(f"clause {clause_id} variables: [{', '.join(literals)}]")
+        for var in literals:
+            base_var = var.replace("'", "")
+            var_set.add(base_var)
+            constraints[base_var] = [literals]
+    variables = order(var_set)
 
-    ordered_vars = order(var_set)
-    print(f"var_set: {var_set}")
-    print(f"order(var_set): {ordered_vars}")
-
-    complements = {}
-    for var in var_set:
-        var_complement = complement(var)
-        complements[var] = var_complement if var_complement in var_set else None
-    print(f"complements: {complements}")
-
-    # constraints = {}
-    # for v,vc in complements.items():
-    #     constraints[v] = []
-    #     if vc:
-    #         constraints[v].append((vc,0))
-    #         constraints[v].append((vc,1))
-
-    # print(f"constraints: {constraints}")
-
+    # set variable domains
     base_domain = (0, 1)  # (True,False)
-
-    # init results
     domains = {var: base_domain for var in var_set}
 
-    csp = CSP(ordered_vars, domains, complements, backtrack)
+    # constraints based on clauses
+
+    csp = CSP(variables, domains, constraints, backtrack)
     # csp = CSP(ordered_vars,domains,constraints)
     solution = csp.solve()
     print(f"\nsolution: {solution}")
@@ -200,12 +220,7 @@ def main_1():
     # generate/construct variable objects
     print()
     print(f"variables: {variables}")
-    print(f"var set  : {var_set}")
     print(f"domains:\n{pformat(domain_dict,indent=2)}")
-
-    active_complements = {var: None for var in var_set}
-    add_complements(var_set, active_complements)
-    print(f"complement_dict: {active_complements}")
 
 
 main()
