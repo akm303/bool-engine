@@ -76,15 +76,15 @@ def backtrack(
     pindent = " " * indent
 
     unassigned_vars = sorted(list(set(variables) - set(assignment.keys())))
-    print(f"{pindent}unassigned: U={unassigned_vars}")
-
     if all(1 in eval_clause(c, assignment,pindent) for c in clauses):
         # complete assignment, fill remaining var with wildcard and return result
         if WITH_FILL and unassigned_vars:
                 for var in unassigned_vars:
                     assignment[var] = '*'
+        print(f"{pindent}solution found! -> A={assignment}")
         return assignment
 
+    print(f"{pindent}unassigned: U={unassigned_vars}")
     if not unassigned_vars:
         print(f"{pindent}no unassigned variables; backtracking")
         return None
