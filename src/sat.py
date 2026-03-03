@@ -22,7 +22,6 @@ class CSP:
         self.solution = algorithm(
             self.variables, self.domains, self.constraints, assignment
         )
-        # print(f"\nresult:: assignment={assignment}")
         return self.solution
 
     def __str__(self):
@@ -43,6 +42,7 @@ def is_complete(variables: list, assignment: dict):
 
 
 def select_unassigned_variable(variables: list, domains: dict, assignment: dict):
+    """select unassigned variable from list of variables"""
     unassigned_vars = [var for var in variables if var not in assignment]
     next_var = min(unassigned_vars, key=lambda var: len(domains[var]))
     print(f"  selected {next_var} <- U={unassigned_vars}")
@@ -50,19 +50,26 @@ def select_unassigned_variable(variables: list, domains: dict, assignment: dict)
 
 
 def order_domain_values(var: str, domains: dict, assignment: dict):
+    """return domain of variable with values in order of assignment priority"""
     return domains[var]
 
 
-def contains_one_or_none(clause: list, var, val, assignment: dict):
-    # cvalues = clause.values()
-    # return all(v in [True, None] for v in cvalues)
-    return all(value_of(lit, var, val, assignment) in [True, None] for lit in clause)
+def contains_one_or_none(clause_literals: list, var, val, assignment: dict):
+    """
+    each clause must contain at least one literal that evaluates to True
+    any unassigned literals (value == None) may later evaluate to True, and therefore are not limiting
+    """
+    return all(
+        value_of(literal, var, val, assignment) in [True, None]
+        for literal in clause_literals
+    )
 
 
-def value_of(lit: str, var: str, val: str, assignment: dict):
-    bvar = base_var(lit)
+def value_of(literal: str, var: str, val: str, assignment: dict):
+    """determines value of literal based on var/val being tested or current assignment up-to-this-point"""
+    bvar = base_var(literal)
     bval = val if bvar == var else assignment.get(bvar, None)
-    rval = bval if not is_complement(lit) else not bval
+    rval = bval if not is_complement(literal) else not bval
     return rval
 
 
@@ -156,15 +163,15 @@ def parse_input(input_str: str) -> dict[int, list[str]]:
 # }
 
 cnf_test_expressions = [
-    "(A)", # 1. {'A':True}
-    "(A')", # 2. {'A':False}
-    "(A)(A')", # 3. None
-    "(X+Y)", # 4. {'X':True,'Y':*}
-    "(X+Y')", # 5. {'X':True,'Y':*}
-    "(X'+Y)", # 6. {'X':*,'Y':True}
-    "(X'+Y')", # 7. {'X':*,'Y':False}
-    "(X+Y)(X'+Y)", # 8. {'X':True,'Y':True}
-    "(X+Y)(X'+Y')", # 9. {'X':True,'Y':False}
+    "(A)",  # 1. {'A':True}
+    "(A')",  # 2. {'A':False}
+    "(A)(A')",  # 3. None
+    "(X+Y)",  # 4. {'X':True,'Y':*}
+    "(X+Y')",  # 5. {'X':True,'Y':*}
+    "(X'+Y)",  # 6. {'X':*,'Y':True}
+    "(X'+Y')",  # 7. {'X':*,'Y':False}
+    "(X+Y)(X'+Y)",  # 8. {'X':True,'Y':True}
+    "(X+Y)(X'+Y')",  # 9. {'X':True,'Y':False}
     "(x_1' + x_2)(x_1' + x_3)",
     "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)",
     "(x_1' + x_2 + x_4' + x_5') (x_2 + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)",
@@ -174,7 +181,7 @@ cnf_test_expressions = [
 def main():
     # input and parse expression data
     for test, cnf_expr in enumerate(cnf_test_expressions):
-        print('-'*40)
+        print("-" * 40)
         input_str = cnf_expr
         print(f'Test {test+1} :: expression: "{input_str}=1"')
         clause_dict = parse_input(input_str)
