@@ -12,6 +12,7 @@ assignment_type = dict
 # fill remaining assignment variables with wildcard symbol '*'
 WITH_FILL = False
 
+
 def is_complement(literal: lit_type):
     return "'" in literal
 
@@ -52,7 +53,7 @@ def other(val: int) -> int:
 
 
 def eval_clause(
-    clause: list[lit_type], assignment: assignment_type,indent_space
+    clause: list[lit_type], assignment: assignment_type, indent_space
 ) -> list[int | None]:
     """returns tuple containing value of clause literals"""
     clause_values = []
@@ -76,11 +77,11 @@ def backtrack(
     pindent = " " * indent
 
     unassigned_vars = sorted(list(set(variables) - set(assignment.keys())))
-    if all(1 in eval_clause(c, assignment,pindent) for c in clauses):
+    if all(1 in eval_clause(c, assignment, pindent) for c in clauses):
         # complete assignment, fill remaining var with wildcard and return result
         if WITH_FILL and unassigned_vars:
-                for var in unassigned_vars:
-                    assignment[var] = '*'
+            for var in unassigned_vars:
+                assignment[var] = "*"
         print(f"{pindent}solution found! -> A={assignment}")
         return assignment
 
