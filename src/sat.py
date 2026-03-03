@@ -156,15 +156,15 @@ def parse_input(input_str: str) -> dict[int, list[str]]:
 # }
 
 cnf_test_expressions = [
-    "(A)",
-    "(A')",
-    "(A)(A')",
-    "(X+Y)",
-    "(X+Y')",
-    "(X'+Y)",
-    "(X'+Y')",
-    "(X+Y)(X'+Y)",
-    "(X+Y)(X'+Y')",
+    "(A)", # 1. {'A':True}
+    "(A')", # 2. {'A':False}
+    "(A)(A')", # 3. None
+    "(X+Y)", # 4. {'X':True,'Y':*}
+    "(X+Y')", # 5. {'X':True,'Y':*}
+    "(X'+Y)", # 6. {'X':*,'Y':True}
+    "(X'+Y')", # 7. {'X':*,'Y':False}
+    "(X+Y)(X'+Y)", # 8. {'X':True,'Y':True}
+    "(X+Y)(X'+Y')", # 9. {'X':True,'Y':False}
     "(x_1' + x_2)(x_1' + x_3)",
     "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)",
     "(x_1' + x_2 + x_4' + x_5') (x_2 + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)",
@@ -174,8 +174,9 @@ cnf_test_expressions = [
 def main():
     # input and parse expression data
     for test, cnf_expr in enumerate(cnf_test_expressions):
+        print('-'*40)
         input_str = cnf_expr
-        print(f'Test {test} :: expression: "{input_str}=1"')
+        print(f'Test {test+1} :: expression: "{input_str}=1"')
         clause_dict = parse_input(input_str)
 
         var_set: set[str] = set()
