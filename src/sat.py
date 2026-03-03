@@ -17,29 +17,35 @@ class CSP:
 
     def solve(self, algorithm):
         assignment = {}
-        print(f"variables: {self.variables}")
-        print(f"domains: {self.domains}")
-        print(f"constraints:\n{pformat(self.constraints)}")
-        print()
+        print(self)
+        print("running solver...")
         self.solution = algorithm(
             self.variables, self.domains, self.constraints, assignment
         )
-        print(f"\nresulting assignment: {assignment}")
+        # print(f"\nresult:: assignment={assignment}")
         return self.solution
+
+    def __str__(self):
+        return (
+            f"> variables: {self.variables}"
+            + f"\n> domains: {self.domains}"
+            + f"\n> constraints:\n{pformat(self.constraints,indent=2)}"
+            + "\n"
+        )
 
 
 # Backtrack & helper functions
 def is_complete(variables: list, assignment: dict):
     len_A = len(assignment)
     len_V = len(variables)
-    print(f"\nis_complete({assignment})? |A|={len_A} ? |V|={len_V} ({len_A == len_V})")
+    print(f"  is_complete({assignment})? |A|={len_A} ? |V|={len_V} ({len_A == len_V})")
     return len(assignment) == len(variables)
 
 
 def select_unassigned_variable(variables: list, domains: dict, assignment: dict):
     unassigned_vars = [var for var in variables if var not in assignment]
     next_var = min(unassigned_vars, key=lambda var: len(domains[var]))
-    print(f"selected {next_var} <- U={unassigned_vars}")
+    print(f"  selected {next_var} <- U={unassigned_vars}")
     return next_var
 
 
@@ -50,7 +56,7 @@ def order_domain_values(var: str, domains: dict, assignment: dict):
 def contains_one_or_none(clause: list, var, val, assignment: dict):
     # cvalues = clause.values()
     # return all(v in [True, None] for v in cvalues)
-    return all(value_of(lit,var,val,assignment) in [True, None] for lit in clause)
+    return all(value_of(lit, var, val, assignment) in [True, None] for lit in clause)
 
 
 def value_of(lit: str, var: str, val: str, assignment: dict):
@@ -64,7 +70,7 @@ def is_consistent(var: str, val: int, constraints: dict, assignment: dict) -> bo
     """check if var assignment to val is consistent with rest of assignment and constraints"""
     clauses = constraints[var]
     results = [contains_one_or_none(clause, var, val, assignment) for clause in clauses]
-    print(f"any(results): {any(results)} <- {results}")
+    print(f"  any(results): {any(results)} <- {results}")
     return all(results)
 
 
@@ -78,14 +84,14 @@ def backtrack(variables: list, domains: dict, constraints: dict, assignment: dic
     var = select_unassigned_variable(variables, domains, assignment)
     for value in order_domain_values(var, domains, assignment):
         if is_consistent(var, value, constraints, assignment):
-            print(f"assigning {{{var}:{value}}} -> A={assignment}", end=" => ")
+            print(f"  assigning {{{var}:{value}}} -> A={assignment}", end=" => ")
             assignment[var] = value
             print(f"{assignment}")
 
             result = backtrack(variables, domains, constraints, assignment)
             if result is not None:
                 return result
-            print(f"removing assignment {var}:{value}")
+            print(f"  removing assignment {var}:{value}")
             del assignment[var]
     return None
 
@@ -133,6 +139,22 @@ def parse_input(input_str: str) -> dict[int, list[str]]:
     return clauses
 
 
+# cnf_test_expressions = {
+#     # test number : (cnf_expr, expected_solution)
+#     1 :("(A)", {'A':True}),
+#     2 :("(A')", {'A':False}),
+#     3 :("(A)(A')", None),
+#     4 :("(X+Y)", {'X':True,'Y':True}),
+#     5 :("(X+Y')", {'X':True,'Y':True}),
+#     6 :("(X'+Y)", {'X':True,'Y':True}),
+#     7 :("(X'+Y')", {'X':False,'Y':False}),
+#     8 :("(X+Y)(X'+Y)", {'X':True,'Y':True}),
+#     9 :("(X+Y)(X'+Y')", {'X':True,'Y':False}),
+#     # 10:("(x_1' + x_2)(x_1' + x_3)", {}),
+#     # 11:("(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)", {}),
+#     # 12:("(x_1' + x_2 + x_4' + x_5') (x_2 + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)", {}),
+# }
+
 cnf_test_expressions = [
     "(A)",
     "(A')",
@@ -140,6 +162,7 @@ cnf_test_expressions = [
     "(X+Y)",
     "(X+Y')",
     "(X'+Y)",
+    "(X'+Y')",
     "(X+Y)(X'+Y)",
     "(X+Y)(X'+Y')",
     "(x_1' + x_2)(x_1' + x_3)",
@@ -150,9 +173,9 @@ cnf_test_expressions = [
 
 def main():
     # input and parse expression data
-    for cnf_expr in cnf_test_expressions[:3]:
+    for test, cnf_expr in enumerate(cnf_test_expressions):
         input_str = cnf_expr
-        print(f"input: {input_str}")
+        print(f'Test {test} :: expression: "{input_str}=1"')
         clause_dict = parse_input(input_str)
 
         var_set: set[str] = set()
@@ -163,21 +186,21 @@ def main():
                 bvar = base_var(lit)
                 var_set.add(bvar)
                 constraints[bvar] = constraints.get(bvar, []) + [literals]
-                print(f"constraint constr: {constraints}")
+                # print(f"+ constraint (clauses): {constraints}")
         variables = var_order(var_set)
 
         # set variable domains
-        # base_domain = (0, 1)  # (True,False)
         base_domain = (True, False)  # (True,False)
         domains = {var: base_domain for var in var_set}
 
         # constraints based on clauses
         csp = CSP(variables, domains, constraints)
         solution = csp.solve(backtrack)
-        print(f"\nsolution: {solution}")
+        print("-" * 40)
+        print(f'solution for expr: "{cnf_expr}=1"\n:: assignment={solution}')
+        print("-" * 40)
         print()
-        print("-" * 40)
-        print("-" * 40)
+        print()
 
 
 def main_1():
