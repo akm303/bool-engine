@@ -25,6 +25,9 @@ def parse_expression(
     expr_string: str,
 ) -> Tuple[expr_type, list[var_type], list[lit_type], list[clause_type]]:
     expression = expr_string.replace(" ", "")
+    # expression,target = expression.split("=")
+    # print(f"expression={expression}")
+    # print(f"target={target}")
 
     lit_pattern = r"(\w+'?)"  # r"(x_\d+'?)"
     clause_pattern = r"\([^()]+\)"
@@ -49,6 +52,8 @@ def parse_expression(
 
 
 def other(val: int) -> int:
+    if val is None:
+        return None
     return 1 if val == 0 else 0
 
 
@@ -101,6 +106,7 @@ def backtrack(
         assignment[current_var] -= 1
 
     print(f"{pindent}no unattempted values; backtracking")
+    del assignment[current_var]
     return None
 
 
@@ -109,24 +115,24 @@ def backtrack(
 
 def main():
     cnf_test_expressions = [
-        "(A)",  # 1. {'A':True}
-        "(A')",  # 2. {'A':False}
+        "(A)",  # 1. {'A':1}
+        "(A')",  # 2. {'A':0}
         "(A)(A')",  # 3. None
-        "(X+Y)",  # 4. {'X':True,'Y':*}
-        "(X+Y')",  # 5. {'X':True,'Y':*}
-        "(X'+Y)",  # 6. {'X':*,'Y':True}
-        "(X'+Y')",  # 7. {'X':*,'Y':False}
-        "(X+Y)(X'+Y)",  # 8. {'X':True,'Y':True}
-        "(X+Y)(X'+Y')",  # 9. {'X':True,'Y':False}
-        "(x_1' + x_2)(x_1' + x_3)",
-        "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)",
-        "(x_1' + x_2 + x_4' + x_5') (x_2 + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)",
+        "(X+Y)",  # 4. {'X':1,'Y':*}
+        "(X+Y')",  # 5. {'X':1,'Y':*}
+        "(X'+Y)",  # 6. {'X':1,'Y':1}
+        "(X'+Y')",  # 7. {'X':1,'Y':0}
+        "(X+Y)(X'+Y)",  # 8. {'X':1,'Y':1}
+        "(X+Y)(X'+Y')",  # 9. {'X':1,'Y':0}
+        "(x_1' + x_2)(x_1' + x_3)",  # 10. {'x_1':1, 'x_2':1, 'x_3':1}
+        "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)",  # 11. {'x_1':1, 'x_2':1, 'x_3':*, 'x_4':*}
+        "(x_1' + x_2' + x_4' + x_5') (x_2' + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)",  # 12. {'x_1':1, 'x_2':1, 'x_3':*, 'x_4':*}
     ]
 
-    for cnf_expr in cnf_test_expressions:
+    for i, cnf_expr in enumerate(cnf_test_expressions):
         print("-" * 40)
         expression, variables, literals, clauses = parse_expression(cnf_expr)
-        print(f"expression: {expression}=1")
+        print(f"expression {i+1}: {expression}=1")
         print(f"clauses:\n{pformat(clauses)}")
         print(f" literals: {literals}")
         print(f"variables: {variables}")
