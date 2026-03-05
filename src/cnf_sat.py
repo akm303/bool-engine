@@ -14,25 +14,14 @@ import re
 from pprint import pformat
 from typing import Tuple
 
-# type aliases
-e_type = str
-c_type = list[int]
-v_type = str
-l_type = v_type
-a_type = dict
+from common import *
+
+a_type = dict # a = assignment
 
 # --------------------------------------------------- #
 # fill remaining assignment variables with wildcard symbol '*'
 # WITH_FILL = False
 WITH_FILL = True
-
-
-def is_complement(literal: l_type) -> bool:
-    return "'" in literal
-
-
-def base_variable(literal: l_type) -> v_type:
-    return literal.replace("'", "")
 
 
 def parse_expression(
@@ -70,30 +59,8 @@ def inverse(val: int) -> int:
         return None
     return 1 if val == 0 else 0
 
-# def c_str(clause,mode="CNF"):
-def c_str(clause):
-    """generates a string representing a clause"""
-    return f"({f' + '.join(clause)})"
 
-def clist_str(clauses:list[list[v_type]]):
-    """generates a string representing a list of clauses"""
-    # djunc_delim = ' * '
-    djunc_delim = ', '
-    # djunc_delim = ' '
-    rstr = [c_str(clause) for clause in clauses]
-    return f"[{djunc_delim.join(rstr)}]"
 
-def vlist_str(variable_list):
-    """generates a string representing a list of variables"""
-    return f"[ {f', '.join(variable_list)} ]"
-
-def a_str(assignment:dict):
-    """generates a string representing an assignment of boolean values to variables"""
-    if not assignment:
-        return None
-    rstr = [f"{k} : {v}" for k,v in assignment.items()]
-    rstr = f"{{ {', '.join(rstr)} }}"
-    return rstr
 
 def eval_clause(
     clause: list[l_type], assignment: a_type, indent: str
@@ -114,7 +81,7 @@ def backtrack(
     variables: list[v_type],
     clauses: list[c_type],
     i_space: int = 0,
-) -> a_type[v_type,0|1]:
+) -> a_type[v_type, 0 | 1]:
     indent = " " * i_space
     # print(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
 
@@ -130,8 +97,7 @@ def backtrack(
     print(f"{indent} >           :C = {clist_str(clauses)}")
     print(f"{indent}>>")
 
-
-    indent: str = " " * (i_space+2)
+    indent: str = " " * (i_space + 2)
     unassigned_vars: list[v_type] = sorted(
         list(set(variables) - set(assignment.keys()))
     )
@@ -158,7 +124,10 @@ def backtrack(
                 return result
             assignment[current_var] -= 1
 
-        print(f"{indent}<< no unattempted values; removing {current_var} from assignment",end='')
+        print(
+            f"{indent}<< no unattempted values; removing {current_var} from assignment",
+            end="",
+        )
         del assignment[current_var]
 
     print(f"\n{indent}<< no unassigned variables; backtracking")
@@ -187,7 +156,7 @@ def main():
     for i, cnf_expr in enumerate(cnf_test_expressions):
         print("-" * 40)
         expression, variables, literals, clauses = parse_expression(cnf_expr)
-        print(f"expression {i+1}: \"{expression}=1\"")
+        print(f'expression {i+1}: "{expression}=1"')
         print(f"     clauses = {clist_str(clauses)}")
         print(f"    literals = {vlist_str(literals)}")
         print(f"   variables = {vlist_str(variables)}")
