@@ -1,7 +1,20 @@
+"""
+Docstring for src.sat
+
+Custom designed and implemented algorithm to solve SAT for expressions in CNF form
+input: string expression in CNF 
+- expression is a disjunction of clauses
+- each clause is a conjunction of literals
+- each literal is a variable or its complement
+output: assignment of boolean variables to evaluate overall expression equal to 1
+
+"""
+
 import re
 from pprint import pformat
 from typing import Tuple
 
+# type aliases
 expr_type = str
 clause_type = list[int]
 var_type = str
@@ -51,7 +64,7 @@ def parse_expression(
 # --------------------------------------------------- #
 
 
-def other(val: int) -> int:
+def inverse(val: int) -> int:
     if val is None:
         return None
     return 1 if val == 0 else 0
@@ -65,7 +78,7 @@ def eval_clause(
     for literal in clause:
         bvar = base_variable(literal)
         bval = assignment.get(bvar, None)
-        clause_values.append(bval if bvar == literal else other(bval))
+        clause_values.append(bval if bvar == literal else inverse(bval))
     print(
         f"{indent_space}? eval clause: {clause} from assignment={assignment} => {clause}={clause_values}"
     )
@@ -82,6 +95,7 @@ def backtrack(
     pindent = " " * indent
 
     unassigned_vars = sorted(list(set(variables) - set(assignment.keys())))
+
     if all(1 in eval_clause(c, assignment, pindent) for c in clauses):
         # complete assignment, fill remaining var with wildcard and return result
         if WITH_FILL and unassigned_vars:
@@ -91,22 +105,21 @@ def backtrack(
         return assignment
 
     print(f"{pindent}unassigned: U={unassigned_vars}")
-    if not unassigned_vars:
-        print(f"{pindent}no unassigned variables; backtracking")
-        return None
+    if unassigned_vars:
+        current_var = unassigned_vars.pop(0)
+        print(f"{pindent}current var: {current_var}")
 
-    current_var = unassigned_vars.pop(0)
-    print(f"{pindent}current var: {current_var}")
+        assignment[current_var] = 1  # assign(var,1)
+        while assignment[current_var] >= 0:
+            result = backtrack(assignment, variables, clauses, indent + 2)
+            if result is not None:
+                return result
+            assignment[current_var] -= 1
 
-    assignment[current_var] = 1  # assign(var,1)
-    while assignment[current_var] >= 0:
-        result = backtrack(assignment, variables, clauses, indent + 2)
-        if result is not None:
-            return result
-        assignment[current_var] -= 1
-
-    print(f"{pindent}no unattempted values; backtracking")
-    del assignment[current_var]
+        print(f"{pindent}no unattempted values; backtracking")
+        del assignment[current_var]
+    
+    print(f"{pindent}no unassigned variables; backtracking")
     return None
 
 

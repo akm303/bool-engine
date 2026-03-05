@@ -5,12 +5,13 @@ Custom Python Library For Implmentation Of Boolean Logic and Truth Table Operati
 ## Features
 - [Boolean Logic (V1)](#boolean-logic-v1)
   - [Features](#features)
-      - [Truthtable Generation](#truthtable-generation)
-      - [SAT Solver](#sat-solver)
+    - [Truthtable Generation](#truthtable-generation)
+    - [SAT Solver](#sat-solver)
 
 
+---
 
-#### Truthtable Generation
+### Truthtable Generation
 Display a formatted truthtable to console with boolean expressions
 [`src/truthtables`](src/truthtables.py)
 - pass a list of expressions
@@ -20,8 +21,13 @@ Display a formatted truthtable to console with boolean expressions
   - display variables from list
   - extract & display subexpressions of listed variables
 
+run testcases:
+`python src/truthtables.py`
 
-#### SAT Solver
+
+---
+
+### SAT Solver
 Solves SAT problem for any boolean equation in CNF form equal to 1 (v1)
 [`src/sat`](src/sat.py)
 - pass a string representing the expression
@@ -30,4 +36,9 @@ Solves SAT problem for any boolean equation in CNF form equal to 1 (v1)
   - each literal is a variable or its complement
 - returns an assignment/mapping of variables to boolean values such that the expression evaluates to True (or 1)
 
+run testcases:
+`python src/sat.py`
+
+
+---
 
