@@ -91,7 +91,7 @@ def fmt_formula(formula_str: str, idt=" " * 2) -> str:
     if expression[0] != "(" or expression[-1] != ")":
         expression = f"({expression})"
 
-    print(f"{idt}  (lhs,rhs): {target,expression}")
+    dprint(f"{idt}  (lhs,rhs): {target,expression}")
     return target, expression
 
 
@@ -99,49 +99,134 @@ def parse_formula(
     formula_str: str,
 ) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]]:
 
-    def var(i):
+    def get_var(i):
         return f"X{i}"
 
-    var_count = count()
-    subexpr_dict: dict[str, subexpr_type] = {}
     idt = " " * 2  # indent
     subexpr_pattern = r"\([^()]+\)"
-
     target, expression = fmt_formula(formula_str)
     # print(f'{idt}formatted: "{target}" = "{expression}"')
 
-    i = next(var_count)
-    next_var = var(i)
-    subexpr_dict[next_var] = ""
+    var_count = count()
+    subexpr_dict: dict[str, subexpr_type] = {}
 
-    while expression != f"X{i}":
-        # add variable per subexpression
-        i = next(var_count)
-        next_var = var(i)
+    matches = list(re.finditer(subexpr_pattern, expression))
+    dprint(f"matches: {matches}")
+    replacements = {}
+    while matches:
+        for match in matches:
+            i = next(var_count)
+            v = get_var(i)
+            sub = match.group(0)
 
-        subexpr: re.Match = re.search(subexpr_pattern, expression)
-        subexpr: str = subexpr.group(0)
-        # print(f"{idt*2}replacing subexpr match \"{subexpr}\" with \"{next_var}\"")
-        subexpr_dict[next_var] = subexpr.replace(var(i - 1), subexpr_dict[var(i - 1)])
+            replacements[sub] = v
+            subkey = sub
 
-        print(f'{idt}next var: "{next_var}" as "{subexpr}" from "{expression}"')
-        print(f'{idt*2}expression: "{expression}"', end=" -> ")
-        expression = expression.replace(subexpr, next_var)
-        print(f'"{expression}"')
+            subexpr_internal_vars = list(re.finditer(r"X\d",sub))
+            dprint(f"to replace in {sub}: {subexpr_internal_vars}")
+            for var_match in subexpr_internal_vars:
+                rvar = var_match.group(0)
+                sub = sub.replace(rvar,subexpr_dict[rvar])
+
+            subexpr_dict[v] = sub
+
+            dprint(f"{idt*2}i={i}, v={v}, subkey={subkey}, sub={sub}")
+            dprint(f"{idt*2}subexpr_dict: {subexpr_dict}")
+            dprint(f"{idt*2}replacements: {replacements}")
+            
+            
+            dprint(f'{idt*2}expression: "{expression}"', end=" -> ")
+            expression = expression.replace(subkey, replacements[subkey])
+            dprint(f'"{expression}"')
+            dprint()
+
+        # get next set of matches
+        matches = list(re.finditer(subexpr_pattern, expression))
 
     return subexpr_dict
+
+
+    # i = next(var_count)
+    # next_var = get_var(i)
+    # subexpr_dict[next_var] = ""
+
+    # while expression != f"X{i}":
+    #     # add variable per subexpression
+    #     i = next(var_count)
+    #     next_var = get_var(i)
+
+    #     subexpr: re.Match = re.search(subexpr_pattern, expression)
+    #     subexpr: str = subexpr.group(0)
+    #     # print(f"{idt*2}replacing subexpr match \"{subexpr}\" with \"{next_var}\"")
+    #     subexpr_dict[next_var] = subexpr.replace(get_var(i - 1), subexpr_dict[get_var(i - 1)])
+
+    #     print(f'{idt}next var: "{next_var}" as "{subexpr}" \\in "{expression}"')
+    #     print(f'{idt*2}expression: "{expression}"', end=" -> ")
+    #     expression = expression.replace(subexpr, next_var)
+    #     print(f'"{expression}"')
+
+    # return subexpr_dict
 
 
 # --------------------------------------------------- #
 def parse_test():
     test_cases = [
         "E = ((p * q) + r) \\then s'",
+        "E=(a+((b+c).(b+d)))"
+    ]
+
+    test_cases = [
+        # --- simple local syntax ---
+        "E=(p.q)",
+        "E=(p+q)",
+        "E=((p+q).r)",
+        "E=((p.q)+(r.s))",
+
+        # --- multiple clauses same level ---
+        "E=(a+b+c)",
+        "E=(a.b.c)",
+        "E=((a+b)+(c+d))",
+        "E=((a.b).(c.d))",
+
+        # --- nested local syntax ---
+        "E=(a+((b+c).(b+d)))",
+        "E=((a+b).((c+d).(e+f)))",
+        "E=(((a+b).c)+(d.(e+f)))",
+        "E=((a.(b+c))+((d+e).f))",
+
+        # --- implication chains ---
+        "E=((p.q)->r)",
+        "E=(p->(q->r))",
+        "E=((p->q)->(r->s))",
+
+        # --- biconditional ---
+        "E=(p<->q)",
+        "E=((p+q)<->(r+s))",
+
+        # --- full latex syntax ---
+        r"E=((p \land q) \lor r)",
+        r"E=((p \land q) \then r)",
+        r"E=(p \then (q \then r))",
+        r"E=((p \lor q) \iff (r \lor s))",
+
+        # --- mixed latex + local ---
+        r"E=((p \land q)+r)",
+        r"E=((p.q) \lor r)",
+        r"E=((p \land q)->(r+s))",
+        r"E=((p+q) \then (r.s))",
+
+        # --- deeper mixed nesting ---
+        r"E=((a \lor (b+c)).(d \then e))",
+        r"E=((a+(b \land c)).((d+e).f))",
     ]
 
     for i, test_formula in enumerate(test_cases):
+        print('-'*40)
         print(f'test {i+1}: "{test_formula}"')
-        result = parse_formula(test_formula)
-        print(f"result: {result}")
+        subexpressions:dict = parse_formula(test_formula)
+        print(f"result: {subexpressions}")
+        print('-'*40)
+        print()
 
 
 def test():

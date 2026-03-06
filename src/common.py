@@ -13,6 +13,14 @@ l_type = v_type  # l = literal
 
 
 # --------------------------------------------------- #
+# debug print
+DEBUG_PRINT = False
+def dprint(*args,**kwargs):
+    if DEBUG_PRINT:
+        print(*args,**kwargs)
+
+
+# --------------------------------------------------- #
 # string formatting
 
 
