@@ -48,6 +48,10 @@ def demorgans(x: v_type, op1: op_type, y1: v_type, y2: v_type) -> str:
     :type op1: op_type (operation type: str) - operation represented by str
     """
     op2 = other_operation(op1)
+    pass
+
+def tseytins():
+    pass
 
 
 def cnf_to_dnf(cnf_expr: str) -> str:
