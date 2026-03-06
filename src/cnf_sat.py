@@ -16,7 +16,7 @@ from typing import Tuple
 
 from common import *
 
-a_type = dict # a = assignment
+a_type = dict  # a = assignment
 
 # --------------------------------------------------- #
 # fill remaining assignment variables with wildcard symbol '*'
@@ -29,8 +29,8 @@ def parse_expression(
 ) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]]:
     expression = expr_string.replace(" ", "")
     # expression,target = expression.split("=")
-    # print(f"expression={expression}")
-    # print(f"target={target}")
+    # dprint(f"expression={expression}")
+    # dprint(f"target={target}")
 
     lit_pattern = r"(\w+'?)"  # r"(x_\d+'?)"
     clause_pattern = r"\([^()]+\)"
@@ -60,19 +60,17 @@ def inverse(val: int) -> int:
     return 1 if val == 0 else 0
 
 
-
-
 def eval_clause(
     clause: list[l_type], assignment: a_type, indent: str
 ) -> list[int | None]:
     """returns tuple containing value of clause literals"""
     clause_values = []
-    # print(f"{indent}from assignment={assignment}")
+    # dprint(f"{indent}from assignment={assignment}")
     for literal in clause:
         bvar = base_variable(literal)
         bval = assignment.get(bvar, None)
         clause_values.append(bval if bvar == literal else inverse(bval))
-    print(f"{indent}? eval clause {c_str(clause)} => {clause_values}")
+    dprint(f"{indent}? eval clause {c_str(clause)} => {clause_values}")
     return clause_values
 
 
@@ -83,19 +81,19 @@ def backtrack(
     i_space: int = 0,
 ) -> a_type[v_type, 0 | 1]:
     indent = " " * i_space
-    # print(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
+    # dprint(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
 
-    # print(f"{indent}>> backtrack(")
-    # print(f"{indent} |   A = {a_str(assignment)},")
-    # print(f"{indent} |   V = {vlist_str(variables)},")
-    # print(f"{indent} |   C = {clist_str(clauses)},")
-    # print(f"{indent} |___)")
+    # dprint(f"{indent}>> backtrack(")
+    # dprint(f"{indent} |   A = {a_str(assignment)},")
+    # dprint(f"{indent} |   V = {vlist_str(variables)},")
+    # dprint(f"{indent} |   C = {clist_str(clauses)},")
+    # dprint(f"{indent} |___)")
 
-    print(f"{indent}>> backtrack ::")
-    print(f"{indent} >           :A = {a_str(assignment)}")
-    print(f"{indent} >           :V = {vlist_str(variables)}")
-    print(f"{indent} >           :C = {clist_str(clauses)}")
-    print(f"{indent}>>")
+    dprint(f"{indent}>> backtrack ::")
+    dprint(f"{indent} >           :A = {a_str(assignment)}")
+    dprint(f"{indent} >           :V = {vlist_str(variables)}")
+    dprint(f"{indent} >           :C = {clist_str(clauses)}")
+    dprint(f"{indent}>>")
 
     indent: str = " " * (i_space + 2)
     unassigned_vars: list[v_type] = sorted(
@@ -107,30 +105,30 @@ def backtrack(
         if WITH_FILL and unassigned_vars:
             for var in unassigned_vars:
                 assignment[var] = "*"
-        print(f"{indent}solution found! -> A={a_str(assignment)}")
+        dprint(f"{indent}solution found! -> A={a_str(assignment)}")
         return assignment
 
-    print(f"{indent}unassigned: U={unassigned_vars}", end=" :: ")
+    dprint(f"{indent}unassigned: U={unassigned_vars}", end=" :: ")
     if unassigned_vars:
         current_var = unassigned_vars.pop(0)
-        print(f'-> var="{current_var}"')
-        # print(f"{indent}current var: {current_var}")
+        dprint(f'-> var="{current_var}"')
+        # dprint(f"{indent}current var: {current_var}")
 
         assignment[current_var] = 1  # assign(var,1)
         while assignment[current_var] >= 0:
             result = backtrack(assignment, variables, clauses, i_space + 2)
             if result is not None:
-                print(f"{indent}<<")
+                dprint(f"{indent}<<")
                 return result
             assignment[current_var] -= 1
 
-        print(
+        dprint(
             f"{indent}<< no unattempted values; removing {current_var} from assignment",
             end="",
         )
         del assignment[current_var]
 
-    print(f"\n{indent}<< no unassigned variables; backtracking")
+    dprint(f"\n{indent}<< no unassigned variables; backtracking")
     return None
 
 
@@ -154,21 +152,22 @@ def main():
     ]
 
     for i, cnf_expr in enumerate(cnf_test_expressions):
-        print("-" * 40)
+
+        print(bar40)
         expression, variables, literals, clauses = parse_expression(cnf_expr)
         print(f'expression {i+1}: "{expression}=1"')
         print(f"     clauses = {clist_str(clauses)}")
         print(f"    literals = {vlist_str(literals)}")
         print(f"   variables = {vlist_str(variables)}")
 
-        print()
+        dprint()
         assignment = a_type()
         result = backtrack(assignment, variables, clauses)
         print()
         print(f"solution: {result}")
-        # print(f"solution: {a_str(result)}")
+        # dprint(f"solution: {a_str(result)}")
 
-        print("-" * 40)
+        print(bar40)
         print()
 
 

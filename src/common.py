@@ -15,6 +15,7 @@ l_type = v_type  # l = literal
 # --------------------------------------------------- #
 # debug print
 DEBUG_PRINT = False
+# DEBUG_PRINT = True
 def dprint(*args,**kwargs):
     if DEBUG_PRINT:
         print(*args,**kwargs)
@@ -22,7 +23,10 @@ def dprint(*args,**kwargs):
 
 # --------------------------------------------------- #
 # string formatting
+def bar(n):
+    return '-'*n
 
+bar40 = bar(40)
 
 def c_str(clause):
     """generates a string representing a clause"""
