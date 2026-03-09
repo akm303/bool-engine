@@ -32,8 +32,8 @@ def parse_expression(
     # dprint(f"expression={expression}")
     # dprint(f"target={target}")
 
-    lit_pattern = r"(\w+'?)"  # r"(x_\d+'?)"
-    clause_pattern = r"\([^()]+\)"
+    lit_pattern = LITERAL_PATTERN
+    clause_pattern = SUBEXPR_PATTERN
 
     clauses = re.findall(clause_pattern, expression)
     clauses = [re.findall(lit_pattern, clause) for clause in clauses]

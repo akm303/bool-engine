@@ -79,6 +79,7 @@ def dnf_to_cnf(dnf_expr: str) -> str:
 
 
 def fmt_formula(formula_str: str, idt=" " * 2) -> str:
+    assignment_pattern = ASSIGNMENT_PATTERN
     formula_str = formula_str.replace("\\then", "->")
     formula_str = formula_str.replace("\\iff", "<->")
     formula_str = formula_str.replace("\\land", ".")
@@ -88,7 +89,7 @@ def fmt_formula(formula_str: str, idt=" " * 2) -> str:
     formula_str = formula_str.replace(" ", "")
     formula_str = formula_str.replace(")(", ").(")
 
-    formula = re.split(r":?=", formula_str)
+    formula = re.split(assignment_pattern, formula_str)
     target, expression = formula
 
     # print(f"expression[0,-1] = {expression[0]}, {expression[-1]}")
@@ -107,7 +108,9 @@ def parse_formula(
         return f"X{i}"
 
     idt = " " * 2  # indent
-    subexpr_pattern = r"\([^()]+\)"
+    subexpr_pattern = SUBEXPR_PATTERN
+    variable_pattern = TRANSFORM_VARIABLE_PATTERN
+
     formula = fmt_formula(formula_str)
     # print(f'{idt}formatted: "{target}" = "{expression}"')
     target, expression = formula
@@ -127,7 +130,7 @@ def parse_formula(
             replacements[sub] = v
             subkey = sub
 
-            subexpr_internal_vars = list(re.finditer(r"X\d", sub))
+            subexpr_internal_vars = list(re.finditer(variable_pattern, sub))
             dprint(f"to replace in {sub}: {subexpr_internal_vars}")
             for var_match in subexpr_internal_vars:
                 rvar = var_match.group(0)

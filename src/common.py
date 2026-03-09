@@ -4,6 +4,8 @@ Docstring for src.common
 type definitions, constants, and functions common across project
 """
 
+import re
+
 # --------------------------------------------------- #
 # type aliases
 e_type = str  # e = expression
@@ -12,21 +14,32 @@ v_type = str  # v = variable
 l_type = v_type  # l = literal
 
 
+# regex patterns
+SUBEXPR_PATTERN = r"\([^()]+\)"
+LITERAL_PATTERN = r"(\w+'?)"  # r"(x_\d+'?)"
+# SATSOLVER_VARIABLE_PATTERN = r"(\w+)'?"  # r"(x_\d+'?)" #todo: test
+TRANSFORM_VARIABLE_PATTERN = r"X\d+"
+ASSIGNMENT_PATTERN = r":?="
+
 # --------------------------------------------------- #
 # debug print
 DEBUG_PRINT = False
+
+
 # DEBUG_PRINT = True
-def dprint(*args,**kwargs):
+def dprint(*args, **kwargs):
     if DEBUG_PRINT:
-        print(*args,**kwargs)
+        print(*args, **kwargs)
 
 
 # --------------------------------------------------- #
 # string formatting
 def bar(n):
-    return '-'*n
+    return "-" * n
+
 
 bar40 = bar(40)
+
 
 def c_str(clause):
     """generates a string representing a clause"""
@@ -54,6 +67,14 @@ def a_str(assignment: dict):
     rstr = [f"{k} : {v}" for k, v in assignment.items()]
     rstr = f"{{ {', '.join(rstr)} }}"
     return rstr
+
+
+# def to_LaTeX(string: e_type):
+#     variables = string.match()
+#     for varstr in list(variables):
+#         string.replace(
+#             r"\w+'?", rf"\\neg{varstr}"
+#     )
 
 
 # --------------------------------------------------- #
