@@ -260,4 +260,6 @@ def test_syntax():
     print(f"\nAll test cases passed? {final_result}")
     return total_results
 
-test_syntax()
+
+if __name__ == "__main__":
+    test_syntax()
