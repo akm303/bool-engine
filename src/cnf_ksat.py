@@ -23,6 +23,9 @@ a_type = dict  # a = assignment
 # WITH_FILL = False
 WITH_FILL = True
 
+STDOUT_TYPE = 0  # default
+# STDOUT_TYPE = 1 #concise
+
 
 def parse_expression(
     expr_string: str,
@@ -35,6 +38,8 @@ def parse_expression(
     lit_pattern = LITERAL_PATTERN
     clause_pattern = SUBEXPR_PATTERN
 
+    # clauses: list of clause lists
+    # each clause is a list of its literals
     clauses = re.findall(clause_pattern, expression)
     clauses = [re.findall(lit_pattern, clause) for clause in clauses]
 
@@ -81,24 +86,20 @@ def backtrack(
     i_space: int = 0,
 ) -> a_type[v_type, 0 | 1]:
     indent = " " * i_space
-    # dprint(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
 
-    # dprint(f"{indent}>> backtrack(")
-    # dprint(f"{indent} |   A = {a_str(assignment)},")
-    # dprint(f"{indent} |   V = {vlist_str(variables)},")
-    # dprint(f"{indent} |   C = {clist_str(clauses)},")
-    # dprint(f"{indent} |___)")
-
-    dprint(f"{indent}>> backtrack ::")
-    dprint(f"{indent} >           :A = {a_str(assignment)}")
-    dprint(f"{indent} >           :V = {vlist_str(variables)}")
-    dprint(f"{indent} >           :C = {clist_str(clauses)}")
-    dprint(f"{indent}>>")
+    if STDOUT_TYPE == 1:
+        dprint(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
+    else:
+        dprint(f"{indent}>> backtrack ::")
+        dprint(f"{indent} >           :A = {a_str(assignment)}")
+        dprint(f"{indent} >           :V = {vlist_str(variables)}")
+        dprint(f"{indent} >           :C = {clist_str(clauses)}")
+        dprint(f"{indent}>>")
 
     indent: str = " " * (i_space + 2)
-    unassigned_vars: list[v_type] = sorted(
-        list(set(variables) - set(assignment.keys()))
-    )
+
+    assigned_vars = assignment.keys()
+    unassigned_vars: list[v_type] = sorted(list(set(variables) - set(assigned_vars)))
 
     if all(1 in eval_clause(c, assignment, indent) for c in clauses):
         # complete assignment, fill remaining var with wildcard and return result
@@ -172,4 +173,6 @@ def main():
 
 
 if __name__ == "__main__":
+    args = parse_debug_flag()
+    set_debug(args.debug)
     main()

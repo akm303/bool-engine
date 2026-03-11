@@ -5,6 +5,7 @@ type definitions, constants, and functions common across project
 """
 
 import re
+import argparse
 
 # --------------------------------------------------- #
 # type aliases
@@ -24,12 +25,20 @@ ASSIGNMENT_PATTERN = r":?="
 # --------------------------------------------------- #
 # debug print
 DEBUG_PRINT = False
-
-
 # DEBUG_PRINT = True
+
+def set_debug(to_debug: bool):
+    global DEBUG_PRINT
+    DEBUG_PRINT = to_debug
+
 def dprint(*args, **kwargs):
     if DEBUG_PRINT:
         print(*args, **kwargs)
+
+def parse_debug_flag():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d','--debug',action='store_true')
+    return parser.parse_args()
 
 
 # --------------------------------------------------- #
@@ -262,4 +271,6 @@ def test_syntax():
 
 
 if __name__ == "__main__":
+    # args = parse_debug_flag()
+    # set_debug(args.debug)
     test_syntax()

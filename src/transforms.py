@@ -214,4 +214,6 @@ def test():
 
 
 if __name__ == "__main__":
+    args = parse_debug_flag()
+    set_debug(args.debug)
     test()
