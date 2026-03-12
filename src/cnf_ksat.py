@@ -27,7 +27,7 @@ STDOUT_TYPE = 0  # default
 # STDOUT_TYPE = 1 #concise
 
 
-def parse_expression(
+def parse_cnf_expression(
     expr_string: str,
 ) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]]:
     expression = expr_string.replace(" ", "")
@@ -150,12 +150,16 @@ def main():
         "(x_1' + x_2)(x_1' + x_3)",  # 10. {'x_1':1, 'x_2':1, 'x_3':1}
         "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)",  # 11. {'x_1':1, 'x_2':1, 'x_3':*, 'x_4':*}
         "(x_1' + x_2' + x_4' + x_5') (x_2' + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)",  # 12. {'x_1':1, 'x_2':1, 'x_3':*, 'x_4':*}
+        
+        # example form 2SAT on website
+        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
+        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",  
     ]
 
     for i, cnf_expr in enumerate(cnf_test_expressions):
 
         print(bar40)
-        expression, variables, literals, clauses = parse_expression(cnf_expr)
+        expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
         print(f'expression {i+1}: "{expression}=1"')
         print(f"     clauses = {clist_str(clauses)}")
         print(f"    literals = {vlist_str(literals)}")

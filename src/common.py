@@ -69,6 +69,11 @@ def vlist_str(variable_list):
     return f"[ {f', '.join(variable_list)} ]"
 
 
+def lset_str(literal_set:set[str]):
+    """generates a string representing a set of variables/literals"""
+    return f"{{ {f', '.join(sorted(list(literal_set)))} }}"
+
+
 def a_str(assignment: dict):
     """generates a string representing an assignment of boolean values to variables"""
     if not assignment:
@@ -157,6 +162,8 @@ def to_code(string: str, language: str):
 def is_complement(literal: l_type) -> bool:
     return "'" in literal
 
+def neg(literal: l_type) -> l_type:
+    return literal+"'" if literal == base_variable(literal) else literal.replace("'","")
 
 def base_variable(literal: l_type) -> v_type:
     return literal.replace("'", "")
