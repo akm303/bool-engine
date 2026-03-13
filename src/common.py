@@ -10,9 +10,9 @@ import argparse
 # --------------------------------------------------- #
 # type aliases
 e_type = str  # e = expression
-c_type = list[int]  # c = clause
 v_type = str  # v = variable
 l_type = v_type  # l = literal
+c_type = list[l_type]  # c = clause
 
 
 # regex patterns
@@ -66,12 +66,12 @@ def clist_str(clauses: list[list[v_type]]):
 
 def vlist_str(variable_list):
     """generates a string representing a list of variables"""
-    return f"[ {f', '.join(variable_list)} ]"
+    return f"[{f', '.join(variable_list)}]"
 
 
 def lset_str(literal_set:set[str]):
     """generates a string representing a set of variables/literals"""
-    return f"{{ {f', '.join(sorted(list(literal_set)))} }}"
+    return f"{{{f', '.join(sorted(list(literal_set)))}}}"
 
 
 def a_str(assignment: dict):
