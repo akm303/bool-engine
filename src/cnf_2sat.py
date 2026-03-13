@@ -56,12 +56,14 @@ def edges_from_clauses(clauses_2sat):
     return edges
 
 
-def is_satisfiable(adj_graph:graph_type) -> Tuple[bool,list]:
+def is_satisfiable(adj_graph: graph_type) -> Tuple[bool, list]:
     for node in adj_graph:
-        if has_path(node,neg(node),adj_graph) and has_path(neg(node),node,adj_graph):
-            return False,[node,neg(node)]
-    return True,[]
-        
+        if has_path(node, neg(node), adj_graph) and has_path(
+            neg(node), node, adj_graph
+        ):
+            return False, [node, neg(node)]
+    return True, []
+
 
 def main():
     cnf_expr = cnf_test_expressions[-1]
@@ -90,10 +92,11 @@ def main():
             dprint(f"  {node1} -> {node2} ? {has_path(node1,node2,adj_graph)}")
         dprint()
 
-    is_sat,contradiction = is_satisfiable(adj_graph)
+    is_sat, contradiction = is_satisfiable(adj_graph)
     print(f"is satisfiable? {is_sat}")
     if not is_sat:
         print(f"contradiction: {contradiction}")
+
 
 if __name__ == "__main__":
     args = parse_debug_flag()

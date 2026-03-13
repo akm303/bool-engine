@@ -6,29 +6,32 @@ from common import *
 
 
 node_type = str
-edge_type = Tuple[str,str]
-graph_type = dict[node_type,set[node_type]]
+edge_type = Tuple[str, str]
+graph_type = dict[node_type, set[node_type]]
+
 
 # -------------------------------- #
 # Graph string formatting
-def node_str(node:node_type) -> str:
+def node_str(node: node_type) -> str:
     return node if is_complement(node) else node + " "
 
 
-def nodelist_str(edges:list[node_type]) -> str:
+def nodelist_str(edges: list[node_type]) -> str:
     return "[" + ", ".join([node_str(e) for e in edges]) + "]"
 
 
-def edge_str(edge:edge_type) -> str:
+def edge_str(edge: edge_type) -> str:
     return f"({node_str(edge[0])}, {node_str(edge[1])})"
 
 
-def edgelist_str(edges:list[edge_type]) -> str:
+def edgelist_str(edges: list[edge_type]) -> str:
     return "[" + ", ".join([edge_str(e) for e in edges]) + "]"
 
 
-def adjgraph_str(adj_graph: graph_type, indent_str:str=" ", one_line:bool=False) -> str:
-    term_spacer:str = "\n" if not one_line else ' '
+def adjgraph_str(
+    adj_graph: graph_type, indent_str: str = " ", one_line: bool = False
+) -> str:
+    term_spacer: str = "\n" if not one_line else " "
     terms = []
     for literal, adj_literals in adj_graph.items():
         terms.append(f"{indent_str}{node_str(literal)}: {lset_str(adj_literals)}")
@@ -43,14 +46,15 @@ def build_adj_graph(nodes: list[node_type], edges: list[edge_type]) -> graph_typ
     adjacency = {n: set() for n in nodes}
 
     for edge in edges:
-        dprint(f"adding edge: {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}")
+        dprint(
+            f"adding edge: {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}"
+        )
         u, v = edge
         adjacency[u].add(v)
     return adjacency
 
 
-
-def get_reachable(start_node:node_type, adj_graph:graph_type):
+def get_reachable(start_node: node_type, adj_graph: graph_type):
 
     def dfs(node: node_type, visited: set[node_type], adj_graph: graph_type):
         reachable = [node]
@@ -64,7 +68,6 @@ def get_reachable(start_node:node_type, adj_graph:graph_type):
     return reachable[1:]
 
 
-
 # ------------------------------ #
 # ------------------------------ #
 
@@ -72,9 +75,10 @@ def get_reachable(start_node:node_type, adj_graph:graph_type):
 # - a path from xi to xi'
 # - a path from xi' to xi
 
-def has_path(u:node_type,v:node_type,g:graph_type)->bool:
+
+def has_path(u: node_type, v: node_type, g: graph_type) -> bool:
     """returns whether node v can be reached from node u in graph g"""
-    return (u==v) or (v in get_reachable(u,g))
+    return (u == v) or (v in get_reachable(u, g))
 
 
 def main():

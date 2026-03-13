@@ -27,17 +27,20 @@ ASSIGNMENT_PATTERN = r":?="
 DEBUG_PRINT = False
 # DEBUG_PRINT = True
 
+
 def set_debug(to_debug: bool):
     global DEBUG_PRINT
     DEBUG_PRINT = to_debug
+
 
 def dprint(*args, **kwargs):
     if DEBUG_PRINT:
         print(*args, **kwargs)
 
+
 def parse_debug_flag():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d','--debug',action='store_true')
+    parser.add_argument("-d", "--debug", action="store_true")
     return parser.parse_args()
 
 
@@ -69,7 +72,7 @@ def vlist_str(variable_list):
     return f"[{f', '.join(variable_list)}]"
 
 
-def lset_str(literal_set:set[str]):
+def lset_str(literal_set: set[str]):
     """generates a string representing a set of variables/literals"""
     return f"{{{f', '.join(sorted(list(literal_set)))}}}"
 
@@ -115,7 +118,6 @@ def to_LaTeX(string: e_type):
         string = string.replace(local_op, code_op)
     return string
 
-
     # for varstr in list(variables):
     #     string.replace(r"\w+'?", rf"\\neg{varstr}")
     # string.replace(" ", "")
@@ -133,8 +135,8 @@ def to_code(string: str, language: str):
     or_op = "|"
     and_op = "&"
     if is_c:
-        or_op = '||'
-        and_op = '&&'
+        or_op = "||"
+        and_op = "&&"
 
     operator_map = {
         r"\lor": or_op,
@@ -162,8 +164,12 @@ def to_code(string: str, language: str):
 def is_complement(literal: l_type) -> bool:
     return "'" in literal
 
+
 def neg(literal: l_type) -> l_type:
-    return literal+"'" if literal == base_variable(literal) else literal.replace("'","")
+    return (
+        literal + "'" if literal == base_variable(literal) else literal.replace("'", "")
+    )
+
 
 def base_variable(literal: l_type) -> v_type:
     return literal.replace("'", "")
@@ -174,11 +180,11 @@ def base_variable(literal: l_type) -> v_type:
 # tests
 
 
-def check(original,expected, actual):
+def check(original, expected, actual):
     case_passed = expected == actual
     original = f'"{original}"'
     print(
-        f"  case {original:10}: expected(\"{expected}\") == actual(\"{actual}\")? "
+        f'  case {original:10}: expected("{expected}") == actual("{actual}")? '
         f"{'Pass' if case_passed else 'Fail'}"
     )
     return case_passed
@@ -205,10 +211,9 @@ def test_syntax():
         total_results = []
         for test_case, test_expected in local_syntax_tests.items():
             test_actual = to_local_syntax(test_case)
-            case_passed = check(test_case,test_expected,test_actual)
+            case_passed = check(test_case, test_expected, test_actual)
             total_results.append(case_passed)
         return total_results
-
 
     def from_local_test():
         syntax_tests = {
@@ -250,23 +255,23 @@ def test_syntax():
         total_results = []
         for test_lang, test_cases in syntax_tests.items():
             if test_lang == "code":
-                for i,lang in enumerate(["py", "c"]):
+                for i, lang in enumerate(["py", "c"]):
                     print(f"testing for conversion to {test_lang}::{lang}")
                     for test_case, test_expected in test_cases.items():
-                        test_expected = test_expected.replace('&','&'*(i+1))
-                        test_expected = test_expected.replace('|','|'*(i+1))
+                        test_expected = test_expected.replace("&", "&" * (i + 1))
+                        test_expected = test_expected.replace("|", "|" * (i + 1))
                         test_actual = test_funcs[test_lang](test_case, lang)
-                        case_passed = check(test_case,test_expected,test_actual)
-                        total_results.append(case_passed) 
+                        case_passed = check(test_case, test_expected, test_actual)
+                        total_results.append(case_passed)
                         # total_results.append((test_case,test_expected,test_actual,case_passed))
             else:
                 print(f"testing for conversion to {test_lang}")
                 for test_case, test_expected in test_cases.items():
                     test_actual = test_funcs[test_lang](test_case)
-                    case_passed = check(test_case,test_expected,test_actual)
-                    total_results.append(case_passed) 
+                    case_passed = check(test_case, test_expected, test_actual)
+                    total_results.append(case_passed)
         return total_results
-    
+
     print("Running Tests:")
     total_results = []
     total_results += to_local_test()
