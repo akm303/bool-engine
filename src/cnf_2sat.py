@@ -78,8 +78,10 @@ def is_satisfiable(adj_graph: graph_type) -> Tuple[bool, list]:
 
 
 def tests():
-    test_results = []
+    test_results = {}
+    i = 0
     for cnf_expr, expected in cnf_test_expressions.items():
+        i += 1
         expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
 
         # each clause has 2 literals because 2sat
@@ -87,7 +89,7 @@ def tests():
         edges = edges_from_clauses(clauses)
 
         print(bar40)
-        print(f'expression: "{cnf_expr}"')
+        print(f'test {i} :: expression: "{cnf_expr}"')
         print()
         print(f"nodes: {nodelist_str(nodes)}")
         print(f"edges: {edgelist_str(edges)}")
@@ -114,12 +116,12 @@ def tests():
             print(f"contradiction: {contradiction}")
 
         test_passed = "Pass" if is_sat == expected else "Fail"
-        print(f"test: {test_passed}")
+        print(f"test {i}: {test_passed}")
 
         # test_passed = is_sat == expected
         # print(f"test: {'Pass' if test_passed else 'Fail'}")
 
-        test_results.append(test_passed)
+        test_results[i] = test_passed
         print(bar40)
         print()
     print()
