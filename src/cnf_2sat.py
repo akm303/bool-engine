@@ -14,18 +14,32 @@ from implication_graph import *
 from common import *
 
 
-cnf_test_expressions = [
-    "(X+Y)",
-    "(X+Y')",
-    "(X'+Y)",
-    "(X'+Y')",
-    "(X+Y)(X'+Y)",
-    "(X+Y)(X'+Y')",
-    "(x_1' + x_2)(x_1' + x_3)",
+# cnf_test_expressions = [
+#     "(X+Y)",
+#     "(X+Y')",
+#     "(X'+Y)",
+#     "(X'+Y')",
+#     "(X+Y)(X'+Y)",
+#     "(X+Y)(X'+Y')",
+#     "(x_1' + x_2)(x_1' + x_3)",
+#     # example form 2SAT on website
+#     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
+#     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
+# ]
+
+
+cnf_test_expressions = {
+    "(X+Y)": True,
+    "(X+Y')": True,
+    "(X'+Y)": True,
+    "(X'+Y')": True,
+    "(X+Y)(X'+Y)": True,
+    "(X+Y)(X'+Y')": True,
+    "(x_1' + x_2)(x_1' + x_3)": True,
     # example form 2SAT on website
-    "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
-    "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
-]
+    "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
+    "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
+}
 
 
 def nodes_from_variables(variables):
@@ -57,48 +71,62 @@ def edges_from_clauses(clauses_2sat):
 
 
 def is_satisfiable(adj_graph: graph_type) -> Tuple[bool, list]:
-    for node in adj_graph:
-        if has_path(node, neg(node), adj_graph) and has_path(
-            neg(node), node, adj_graph
-        ):
-            return False, [node, neg(node)]
+    for n in adj_graph:  # for each node n
+        if has_path(n, neg(n), adj_graph) and has_path(neg(n), n, adj_graph):
+            return False, [n, neg(n)]
     return True, []
 
 
-def main():
-    cnf_expr = cnf_test_expressions[-1]
-    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
+def tests():
+    test_results = []
+    for cnf_expr, expected in cnf_test_expressions.items():
+        expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
 
-    # each clause has 2 literals because 2sat
-    nodes = nodes_from_variables(variables)
-    edges = edges_from_clauses(clauses)
+        # each clause has 2 literals because 2sat
+        nodes = nodes_from_variables(variables)
+        edges = edges_from_clauses(clauses)
 
-    print(f"nodes: {nodelist_str(nodes)}")
-    print(f"edges: {edgelist_str(edges)}")
+        print(bar40)
+        print(f'expression: "{cnf_expr}"')
+        print()
+        print(f"nodes: {nodelist_str(nodes)}")
+        print(f"edges: {edgelist_str(edges)}")
 
-    adj_graph = build_adj_graph(nodes, edges)
-    print(f"graph (adjacency): {adjgraph_str(adj_graph)}")
+        adj_graph = build_adj_graph(nodes, edges)
+        print(f"graph (adjacency): {adjgraph_str(adj_graph)}")
 
-    dprint()
-    dprint("reachable:")
-    for node in adj_graph:
-        reachables = get_reachable(node, adj_graph)
-        dprint(f"from {node}: {nodelist_str(reachables)}")
-
-    dprint()
-    dprint("has_path(): from")
-    for node1 in adj_graph:
-        for node2 in adj_graph:
-            dprint(f"  {node1} -> {node2} ? {has_path(node1,node2,adj_graph)}")
         dprint()
+        dprint("reachable:")
+        for node in adj_graph:
+            reachables = get_reachable(node, adj_graph)
+            dprint(f"from {node}: {nodelist_str(reachables)}")
 
-    is_sat, contradiction = is_satisfiable(adj_graph)
-    print(f"is satisfiable? {is_sat}")
-    if not is_sat:
-        print(f"contradiction: {contradiction}")
+        dprint()
+        dprint("has_path(): from")
+        for node1 in adj_graph:
+            for node2 in adj_graph:
+                dprint(f"  {node1} -> {node2} ? {has_path(node1,node2,adj_graph)}")
+            dprint()
+
+        is_sat, contradiction = is_satisfiable(adj_graph)
+        print(f"is satisfiable? {is_sat}")
+        if not is_sat:
+            print(f"contradiction: {contradiction}")
+
+        test_passed = "Pass" if is_sat == expected else "Fail"
+        print(f"test: {test_passed}")
+
+        # test_passed = is_sat == expected
+        # print(f"test: {'Pass' if test_passed else 'Fail'}")
+
+        test_results.append(test_passed)
+        print(bar40)
+        print()
+    print()
+    print(f"test results: {test_results}")
 
 
 if __name__ == "__main__":
     args = parse_debug_flag()
     set_debug(args.debug)
-    main()
+    tests()
