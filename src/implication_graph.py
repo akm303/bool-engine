@@ -27,10 +27,11 @@ def edgelist_str(edges:list[edge_type]) -> str:
     return "[" + ", ".join([edge_str(e) for e in edges]) + "]"
 
 
-def adjgraph_str(adj_graph: graph_type, indent_str:str=" ", term_spacer:str="\n") -> str:
+def adjgraph_str(adj_graph: graph_type, indent_str:str=" ", one_line:bool=False) -> str:
+    term_spacer:str = "\n" if not one_line else ' '
     terms = []
-    for literal, adj_literal_set in adj_graph.items():
-        terms.append(f"{indent_str}{node_str(literal)}: {lset_str(adj_literal_set)}")
+    for literal, adj_literals in adj_graph.items():
+        terms.append(f"{indent_str}{node_str(literal)}: {lset_str(adj_literals)}")
     outstring = f",{term_spacer}".join(terms)
     return f"{{{term_spacer}{outstring}{term_spacer}}}"
 
@@ -42,7 +43,7 @@ def build_adj_graph(nodes: list[node_type], edges: list[edge_type]) -> graph_typ
     adjacency = {n: set() for n in nodes}
 
     for edge in edges:
-        dprint(f"adding edge: {edge_str(edge)} to adj: {adjgraph_str(adjacency,term_spacer=' ')}")
+        dprint(f"adding edge: {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}")
         u, v = edge
         adjacency[u].add(v)
     return adjacency
