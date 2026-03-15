@@ -31,9 +31,6 @@ def parse_cnf_expression(
     expr_string: str,
 ) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]]:
     expression = expr_string.replace(" ", "")
-    # expression,target = expression.split("=")
-    # dprint(f"expression={expression}")
-    # dprint(f"target={target}")
 
     lit_pattern = LITERAL_PATTERN
     clause_pattern = SUBEXPR_PATTERN
@@ -55,6 +52,15 @@ def parse_cnf_expression(
 
     return expression, variables, literals, clauses
 
+
+def is_ksat(clauses:list[c_type],k:int)->bool:
+    return all(len(clause)==k for clause in clauses)
+
+def is_2sat(clauses:list[c_type])->bool:
+    return is_ksat(clauses,2)
+
+def is_3sat(clauses:list[c_type])->bool:
+    return is_ksat(clauses,2)
 
 # --------------------------------------------------- #
 
@@ -135,8 +141,7 @@ def backtrack(
 
 # --------------------------------------------------- #
 
-
-def main():
+def test():
     cnf_test_expressions = [
         # custom examples
         "(A)",  # 1. {'A':1}
@@ -174,7 +179,7 @@ def main():
         assignment = a_type()
         result = backtrack(assignment, variables, clauses)
         print()
-        print(f"solution: {result}")
+        print(f"solution: {a_str(result)}")
         # dprint(f"solution: {a_str(result)}")
 
         print(bar40)
@@ -184,4 +189,4 @@ def main():
 if __name__ == "__main__":
     args = parse_debug_flag()
     set_debug(args.debug)
-    main()
+    test()

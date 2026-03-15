@@ -96,8 +96,8 @@ def a_str(assignment: dict):
     """generates a string representing an assignment of boolean values to variables"""
     if not assignment:
         return None
-    rstr = [f"{k} : {v}" for k, v in assignment.items()]
-    rstr = f"{{ {', '.join(rstr)} }}"
+    rstr = [f"{k} : {v} " for k, v in assignment.items()]
+    rstr = f"{{ {', '.join(rstr)}}}"
     return rstr
 
 

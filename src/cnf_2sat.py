@@ -9,7 +9,7 @@ algorithm as based on [Extreme Algorithms](https://www2.seas.gwu.edu/~simhaweb/c
 from typing import Tuple
 from pprint import pformat
 
-from cnf_ksat import parse_cnf_expression
+from cnf_ksat import parse_cnf_expression, is_2sat
 from implication_graph import *
 from common import *
 
@@ -66,20 +66,6 @@ def is_satisfiable(
 
 
 def tests():
-
-    # cnf_test_expressions = [
-    #     "(X+Y)",
-    #     "(X+Y')",
-    #     "(X'+Y)",
-    #     "(X'+Y')",
-    #     "(X+Y)(X'+Y)",
-    #     "(X+Y)(X'+Y')",
-    #     "(x_1' + x_2)(x_1' + x_3)",
-    #     # example form 2SAT on website
-    #     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
-    #     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
-    # ]
-
     # dictionary mapping an expression to whether or not its satisfiable
     cnf_test_expressions = {
         # custom examples
@@ -105,6 +91,7 @@ def tests():
     for cnf_expr, expected in cnf_test_expressions.items():
         i += 1
         expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
+        assert is_2sat(clauses)
 
         # each clause has 2 literals because 2sat
         nodes = nodes_from_variables(variables)
@@ -118,7 +105,7 @@ def tests():
         print()
         print(f"nodes: {nodelist_str(nodes)}")
         print(f"edges: {edgelist_str(edges)}")
-        print(f"graph (adjacency): {adjgraph_str(adj_graph)}")
+        print(f"graph (adjacency): {adjgraph_str(adj_graph,indent='  ')}")
 
         dprint()
         dprint("reachable:")
@@ -138,7 +125,7 @@ def tests():
         is_sat, contradiction = is_satisfiable(adj_graph, get_all_contradictions=True)
         print(f"is satisfiable? {is_sat}")
         if not is_sat:
-            print(f"contradiction: {contradiction}")
+            print(f"evidence: paths exist between {contradiction}")
 
         test_passed = "Pass" if is_sat == expected else "Fail"
         print(f"test {i}: {test_passed}")
@@ -152,8 +139,8 @@ def tests():
     print()
     print(f"test results: {test_results}")
     print(
-        "all tests passed"
-        if all(result == True for result in test_results)
+        "All Tests Passed"
+        if all(result == "Pass" for result in test_results.values())
         else "Some Tests Failed"
     )
 
