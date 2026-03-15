@@ -14,35 +14,8 @@ from implication_graph import *
 from common import *
 
 
-# cnf_test_expressions = [
-#     "(X+Y)",
-#     "(X+Y')",
-#     "(X'+Y)",
-#     "(X'+Y')",
-#     "(X+Y)(X'+Y)",
-#     "(X+Y)(X'+Y')",
-#     "(x_1' + x_2)(x_1' + x_3)",
-#     # example form 2SAT on website
-#     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
-#     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
-# ]
-
-
-cnf_test_expressions = {
-    "(X+Y)": True,
-    "(X+Y')": True,
-    "(X'+Y)": True,
-    "(X'+Y')": True,
-    "(X+Y)(X'+Y)": True,
-    "(X+Y)(X'+Y')": True,
-    "(x_1' + x_2)(x_1' + x_3)": True,
-    # example form 2SAT on website
-    "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
-    "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
-}
-
-
 def nodes_from_variables(variables):
+    """return list of 'nodes' representing all implicated literals"""
     return variables + [neg(var) for var in variables]
 
 
@@ -70,14 +43,63 @@ def edges_from_clauses(clauses_2sat):
     return edges
 
 
-def is_satisfiable(adj_graph: graph_type) -> Tuple[bool, list]:
+def is_satisfiable(
+    adj_graph: graph_type, get_all_contradictions: bool = False
+) -> Tuple[bool, list]:
+    """returns whether or not an expression is satisfiable based on an implication graph"""
+    contradictions = []
     for n in adj_graph:  # for each node n
-        if has_path(n, neg(n), adj_graph) and has_path(neg(n), n, adj_graph):
-            return False, [n, neg(n)]
-    return True, []
+        negn = neg(n)
+        n_str, negn_str = sfmt(n, negn, fmt=node_str)
+        found_n_to_negn_path = has_path(n, negn, adj_graph)
+        found_negn_to_n_path = has_path(negn, n, adj_graph)
+        dprint(f"checking for contradictory paths")
+        dprint(f"  from {n_str} -> {negn_str}")
+        dprint(f"  has_path({n_str},{negn_str})? {found_n_to_negn_path}")
+        dprint(f"  has_path({negn_str},{n_str})? {found_negn_to_n_path}")
+        if found_n_to_negn_path and found_negn_to_n_path:
+            print(f"  found bidir paths between [ {n_str} <=> {negn_str} ]")
+            contradictions.append((n, negn))
+            if not get_all_contradictions:
+                return False, contradictions
+    return len(contradictions) <= 0, contradictions
 
 
 def tests():
+
+    # cnf_test_expressions = [
+    #     "(X+Y)",
+    #     "(X+Y')",
+    #     "(X'+Y)",
+    #     "(X'+Y')",
+    #     "(X+Y)(X'+Y)",
+    #     "(X+Y)(X'+Y')",
+    #     "(x_1' + x_2)(x_1' + x_3)",
+    #     # example form 2SAT on website
+    #     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
+    #     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
+    # ]
+
+    # dictionary mapping an expression to whether or not its satisfiable
+    cnf_test_expressions = {
+        # custom examples
+        "(X+Y)": True,
+        "(X+Y')": True,
+        "(X'+Y)": True,
+        "(X'+Y')": True,
+        "(X+Y)(X'+Y)": True,
+        "(X+Y)(X'+Y')": True,
+        "(x_1' + x_2)(x_1' + x_3)": True,
+        # example form 2SAT on website
+        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
+        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
+        "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
+        "(x_3' + x_2) (x_2' + x_1) (x_1 + x_2) (x_1' + x_3') (x_1' + x_3)": False,  # swapped x_1 & x_3
+        # custom examples
+        "(x_a' + x_a)": True,
+        "(A + A)(A' + A')": False,
+    }
+
     test_results = {}
     i = 0
     for cnf_expr, expected in cnf_test_expressions.items():
@@ -87,14 +109,15 @@ def tests():
         # each clause has 2 literals because 2sat
         nodes = nodes_from_variables(variables)
         edges = edges_from_clauses(clauses)
+        adj_graph = build_adj_graph(nodes, edges)
 
         print(bar40)
-        print(f'test {i} :: expression: "{cnf_expr}"')
+        test_title = f"test {i} expression ::"
+        print(f'{test_title}  "{cnf_expr}"')
+        print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
         print()
         print(f"nodes: {nodelist_str(nodes)}")
         print(f"edges: {edgelist_str(edges)}")
-
-        adj_graph = build_adj_graph(nodes, edges)
         print(f"graph (adjacency): {adjgraph_str(adj_graph)}")
 
         dprint()
@@ -104,13 +127,15 @@ def tests():
             dprint(f"from {node}: {nodelist_str(reachables)}")
 
         dprint()
-        dprint("has_path(): from")
+        paths = {}
         for node1 in adj_graph:
+            paths[node1] = {}
             for node2 in adj_graph:
-                dprint(f"  {node1} -> {node2} ? {has_path(node1,node2,adj_graph)}")
-            dprint()
+                paths[node1][node2] = bool_num(has_path(node1, node2, adj_graph))
+            dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
 
-        is_sat, contradiction = is_satisfiable(adj_graph)
+        dprint()
+        is_sat, contradiction = is_satisfiable(adj_graph, get_all_contradictions=True)
         print(f"is satisfiable? {is_sat}")
         if not is_sat:
             print(f"contradiction: {contradiction}")
@@ -126,6 +151,11 @@ def tests():
         print()
     print()
     print(f"test results: {test_results}")
+    print(
+        "all tests passed"
+        if all(result == True for result in test_results)
+        else "Some Tests Failed"
+    )
 
 
 if __name__ == "__main__":

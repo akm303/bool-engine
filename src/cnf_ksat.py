@@ -138,6 +138,7 @@ def backtrack(
 
 def main():
     cnf_test_expressions = [
+        # custom examples
         "(A)",  # 1. {'A':1}
         "(A')",  # 2. {'A':0}
         "(A)(A')",  # 3. None
@@ -153,6 +154,11 @@ def main():
         # example form 2SAT on website
         "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
         "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
+        "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)",  # swapped x_1 & x_2
+        "(x_a' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_a') (x_3' + x_a)",  # swapped x_1 & x_3
+        # custom examples
+        "(x_a' + x_a)",
+        "(A + A)(A' + A')",
     ]
 
     for i, cnf_expr in enumerate(cnf_test_expressions):

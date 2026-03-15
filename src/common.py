@@ -29,14 +29,27 @@ DEBUG_PRINT = False
 
 
 def set_debug(to_debug: bool):
+    """
+    sets global DEBUG_PRINT constant to true  
+    (currently applied only with parsed args)
+    """
     global DEBUG_PRINT
     DEBUG_PRINT = to_debug
 
 
 def dprint(*args, **kwargs):
+    """debug print: prints statements only if global DEBUG_PRINT constant set to true"""
+    # args = ' >> debug:',*args
     if DEBUG_PRINT:
         print(*args, **kwargs)
 
+def sfmt(*varlist:list,fmt=str) -> list:
+    """format string for every element in list"""
+    return [fmt(var) for var in varlist]
+
+def dfmt(*varlist:list,fmt=str) -> list:
+    """format string for debug prints if debug enabled, otherwise return as is"""
+    return varlist if not DEBUG_PRINT else sfmt(varlist,fmt=fmt)
 
 def parse_debug_flag():
     parser = argparse.ArgumentParser()
@@ -52,6 +65,8 @@ def bar(n):
 
 bar40 = bar(40)
 
+def bool_num(value:bool)->int:
+    return 1 if True else 0
 
 def c_str(clause):
     """generates a string representing a clause"""

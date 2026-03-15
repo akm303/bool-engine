@@ -16,27 +16,47 @@ def node_str(node: node_type) -> str:
     return node if is_complement(node) else node + " "
 
 
-def nodelist_str(edges: list[node_type]) -> str:
-    return "[" + ", ".join([node_str(e) for e in edges]) + "]"
-
-
 def edge_str(edge: edge_type) -> str:
-    return f"({node_str(edge[0])}, {node_str(edge[1])})"
+    return f"( {node_str(edge[0])}, {node_str(edge[1])})"
+
+
+def collection_str(objs: list[node_type], obj_fmt, braces: str, delim: str) -> str:
+    return braces[0] + delim.join([obj_fmt(obj) for obj in objs]) + braces[1]
+
+
+def nodes_str(nodes: list[node_type], braces="[]", delim=", ") -> str:
+    return collection_str(nodes, node_str, braces=braces, delim=delim)
+
+
+def edges_str(nodes: list[edge_type], braces="[]", delim=", ") -> str:
+    return collection_str(nodes, edge_str, braces=braces, delim=delim)
+
+
+def nodelist_str(nodes: list[node_type]) -> str:
+    return nodes_str(nodes, braces="[]")
 
 
 def edgelist_str(edges: list[edge_type]) -> str:
-    return "[" + ", ".join([edge_str(e) for e in edges]) + "]"
+    return edges_str(edges, braces="[]")
+
+
+def nodeset_str(nodes: set[node_type]) -> str:
+    return nodes_str(nodes, braces=r"{}")
+
+
+def edgeset_str(edges: list[edge_type]) -> str:
+    return edges_str(edges, braces=r"{}")
 
 
 def adjgraph_str(
-    adj_graph: graph_type, indent_str: str = " ", one_line: bool = False
+    adj_graph: graph_type, indent: str = " ", one_line: bool = False
 ) -> str:
-    term_spacer: str = "\n" if not one_line else " "
+    spacer: str = "\n" if not one_line else " "
     terms = []
-    for literal, adj_literals in adj_graph.items():
-        terms.append(f"{indent_str}{node_str(literal)}: {lset_str(adj_literals)}")
-    outstring = f",{term_spacer}".join(terms)
-    return f"{{{term_spacer}{outstring}{term_spacer}}}"
+    for node, adj_nodes in adj_graph.items():
+        terms.append(f"{indent}{node_str(node)}: {nodeset_str(adj_nodes)}")
+    outstring = f",{spacer}".join(terms)
+    return f"{{{spacer}{outstring}{spacer}}}"
 
 
 # -------------------------------- #
@@ -65,6 +85,7 @@ def get_reachable(start_node: node_type, adj_graph: graph_type):
         return reachable
 
     reachable = dfs(start_node, set(), adj_graph)
+    # print(f"  reachable from {start_node}: {reachable}")
     return reachable[1:]
 
 
@@ -76,9 +97,9 @@ def get_reachable(start_node: node_type, adj_graph: graph_type):
 # - a path from xi' to xi
 
 
-def has_path(u: node_type, v: node_type, g: graph_type) -> bool:
+def has_path(u: node_type, v: node_type, graph: graph_type) -> bool:
     """returns whether node v can be reached from node u in graph g"""
-    return (u == v) or (v in get_reachable(u, g))
+    return (u == v) or (v in get_reachable(u, graph))
 
 
 def main():
