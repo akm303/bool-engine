@@ -47,14 +47,27 @@ def parse_debug_flag():
 
 
 # --------------------------------------------------- #
-# type aliases
+# Expression type aliases
 e_type = str  # e = expression
 v_type = str  # v = variable
 l_type = v_type  # l = literal
 c_type = list[l_type]  # c = clause
 
+# -------------------------------- #
+# Graph type aliases
+node_type = str
+edge_type = Tuple[str, str]
+graph_type = dict[node_type, set[node_type]]
+
+# -------------------------------- #
+# Result type aliases
+a_type = dict  # a = assignment
+
 
 # --------------------------------------------------- #
+# String helpers (matching / formatting)
+
+# -------------------------------- #
 # regex string patterns
 SUBEXPR_PATTERN = r"\([^()]+\)"
 LITERAL_PATTERN = r"(\w+'?)"  # r"(x_\d+'?)"
@@ -63,7 +76,7 @@ TRANSFORM_VARIABLE_PATTERN = r"X\d+"
 ASSIGNMENT_PATTERN = r":?="
 
 
-# --------------------------------------------------- #
+# -------------------------------- #
 # common string constructors
 def bar(n):
     return "-" * n
@@ -81,83 +94,40 @@ def bool_num(value: bool) -> int:
 
 
 # --------------------------------------------------- #
-# string formatting - Boolean Expressions (CNF)
-def c_str(clause: list[str]) -> str:
-    """generates a string representing a clause"""
-    return f"({f' + '.join(clause)})"
-
-
-def clist_str(clauses: list[list[v_type]]) -> str:
-    """generates a string representing a list of clauses"""
-    # djunc_delim = ' * '
-    djunc_delim = ", "
-    # djunc_delim = ' '
-    rstr = [c_str(clause) for clause in clauses]
-    return f"[{djunc_delim.join(rstr)}]"
-
-
-def vlist_str(variable_list: list[v_type]) -> str:
-    """generates a string representing a list of variables"""
-    return f"[{f', '.join(variable_list)}]"
-
-
-def lset_str(literal_set: set[str]) -> str:
-    """generates a string representing a set of variables/literals"""
-    return f"{{{f', '.join(sorted(list(literal_set)))}}}"
-
-
-def a_str(assignment: dict) -> str:
-    """generates a string representing an assignment of boolean values to variables"""
-    if not assignment:
-        return None
-    rstr = [f"{k} : {v} " for k, v in assignment.items()]
-    rstr = f"{{ {', '.join(rstr)}}}"
-    return rstr
+# string formatting
 
 
 # -------------------------------- #
-# Graph string formatting
+# canonical collection formatting
+def collection_str(
+    objs: Collection, obj_fmt: Callable, delim: str = ", ", output_type=None,
+) -> str:
+    """formats a collection of objects"""
+
+    # select correct braces format
+    braces_map = {
+        tuple: r"()",
+        list: r"[]",
+        set: r"{}",
+    }
+    if output_type and output_type in braces_map:
+        braces = braces_map[output_type]
+    else:
+        braces = braces_map[type(objs)]
+
+    return braces[0] + delim.join([obj_fmt(obj) for obj in objs]) + braces[1]
 
 
-node_type = str
-edge_type = Tuple[str, str]
-graph_type = dict[node_type, set[node_type]]
-
-
+# -------------------------------- #
+# graph - objects
 def node_str(node: node_type) -> str:
+    """generates a string representing a node containing a literal"""
     return node if is_complement(node) else node + " "
 
 
 def edge_str(edge: edge_type) -> str:
+    """generates a string representing an edge containing a pair of nodes"""
     return f"( {node_str(edge[0])}, {node_str(edge[1])})"
-
-
-def collection_str(objs: list[node_type], obj_fmt, braces: str, delim: str) -> str:
-    return braces[0] + delim.join([obj_fmt(obj) for obj in objs]) + braces[1]
-
-
-def nodes_str(nodes: list[node_type], braces="[]", delim=", ") -> str:
-    return collection_str(nodes, node_str, braces=braces, delim=delim)
-
-
-def edges_str(nodes: list[edge_type], braces="[]", delim=", ") -> str:
-    return collection_str(nodes, edge_str, braces=braces, delim=delim)
-
-
-def nodelist_str(nodes: list[node_type]) -> str:
-    return nodes_str(nodes, braces="[]")
-
-
-def edgelist_str(edges: list[edge_type]) -> str:
-    return edges_str(edges, braces="[]")
-
-
-def nodeset_str(nodes: set[node_type]) -> str:
-    return nodes_str(nodes, braces=r"{}")
-
-
-def edgeset_str(edges: list[edge_type]) -> str:
-    return edges_str(edges, braces=r"{}")
 
 
 def adjgraph_str(
@@ -171,7 +141,84 @@ def adjgraph_str(
     return f"{{{spacer}{outstring}{spacer}}}"
 
 
-# syntax conversions
+# -------------------------------- #
+# graph - collections
+def nodes_str(nodes: Collection[node_type], delim=", ", output_type=list) -> str:
+    return collection_str(nodes, node_str, delim=delim, output_type=output_type)
+
+
+def edges_str(nodes: list[edge_type], delim=", ", output_type=list) -> str:
+    return collection_str(nodes, edge_str, delim=delim, output_type=output_type)
+
+
+def nodelist_str(nodes: list[node_type]) -> str:
+    return nodes_str(nodes, output_type=list)
+
+
+def edgelist_str(edges: list[edge_type]) -> str:
+    return edges_str(edges, output_type=list)
+
+
+def nodeset_str(nodes: set[node_type]) -> str:
+    return nodes_str(nodes, output_type=set)
+
+
+def edgeset_str(edges: list[edge_type]) -> str:
+    return edges_str(edges, output_type=set)
+
+
+# -------------------------------- #
+# expression - objects
+def variable_str(variable: v_type) -> str:
+    """generates a string representing a variable"""
+    return variable
+
+
+# ! ^redundant; variables are already strings without need for formatting,
+# ! or use literal formatting
+
+
+def literal_str(literal: l_type) -> str:
+    """generates a string representing a literal"""
+    return literal if is_complement(literal) else literal + " "
+
+
+def clause_str(clause: c_type) -> str:
+    """generates a string representing a clause"""
+    return f"({f' + '.join(clause)})"
+
+
+# -------------------------------- #
+# expression - collections
+def variables_str(variables: Collection[v_type], delim=", ", output_type=list) -> str:
+    """generates a string representing a list of variables"""
+    return collection_str(variables, obj_fmt=str, delim=delim, output_type=output_type)
+
+
+def literals_str(literals: Collection[l_type], delim=", ", output_type=set) -> str:
+    """generates a string representing a collection of variables/literals"""
+    return collection_str(
+        sorted(list(literals)),
+        obj_fmt=literal_str,
+        delim=delim,
+        output_type=output_type,
+    )
+
+
+def clauses_str(clauses: Collection[c_type], delim=", ", output_type=list) -> str:
+    """generates a string representing a collection of clauses"""
+    return collection_str(
+        clauses, obj_fmt=clause_str, delim=delim, output_type=output_type
+    )
+
+
+def assignment_str(assignment: a_type) -> str:
+    """generates a string representing an assignment of boolean values to variables"""
+    return f"{{ {', '.join([f'{k} : {v} ' for k, v in assignment.items()] if assignment else [])}}}"
+
+
+# --------------------------------------------------- #
+# expression parsing / syntax conversions
 def to_local_syntax(string: str):
     operator_map = {
         r"\lor": "+",
@@ -368,6 +415,7 @@ def test_syntax():
 
 
 if __name__ == "__main__":
-    # args = parse_debug_flag()
-    # set_debug(args.debug)
+    args = parse_debug_flag()
+    set_debug(args.debug)
+    # set_test(True)
     test_syntax()

@@ -14,6 +14,13 @@ from implication_graph import *
 from common import *
 
 
+# --------------------------------------------------- #
+# func alias
+a_str = assignment_str
+
+
+# --------------------------------------------------- #
+# parsing functions - create nodes/edges from expression
 def nodes_from_variables(variables):
     """return list of 'nodes' representing all implicated literals"""
     return variables + [neg(var) for var in variables]
@@ -35,7 +42,7 @@ def edges_from_clauses(clauses_2sat):
         edges.append(edge2)
 
         dprint(bar40)
-        dprint(f"clause: {c_str(clause)}")
+        dprint(f"clause: {clause_str(clause)}")
         dprint(f" edge1: {edge_str(edge1)}")
         dprint(f" edge2: {edge_str(edge2)}")
         dprint(bar40)
@@ -43,6 +50,8 @@ def edges_from_clauses(clauses_2sat):
     return edges
 
 
+# --------------------------------------------------- #
+# SAT check
 def is_satisfiable(
     adj_graph: graph_type, get_all_contradictions: bool = False
 ) -> Tuple[bool, list]:

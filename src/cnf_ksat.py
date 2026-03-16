@@ -16,8 +16,6 @@ from typing import Tuple
 
 from common import *
 
-a_type = dict  # a = assignment
-
 # --------------------------------------------------- #
 # fill remaining assignment variables with wildcard symbol '*'
 # WITH_FILL = False
@@ -84,7 +82,7 @@ def eval_clause(
         bvar = base_variable(literal)
         bval = assignment.get(bvar, None)
         clause_values.append(bval if bvar == literal else inverse(bval))
-    dprint(f"{indent}? eval clause {c_str(clause)} => {clause_values}")
+    dprint(f"{indent}? eval clause {clause_str(clause)} => {clause_values}")
     return clause_values
 
 
@@ -100,9 +98,9 @@ def backtrack(
         dprint(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
     else:
         dprint(f"{indent}>> backtrack ::")
-        dprint(f"{indent} >           :A = {a_str(assignment)}")
-        dprint(f"{indent} >           :V = {vlist_str(variables)}")
-        dprint(f"{indent} >           :C = {clist_str(clauses)}")
+        dprint(f"{indent} >           :A = {assignment_str(assignment)}")
+        dprint(f"{indent} >           :V = {variables_str(variables)}")
+        dprint(f"{indent} >           :C = {clauses_str(clauses)}")
         dprint(f"{indent}>>")
 
     indent: str = " " * (i_space + 2)
@@ -115,7 +113,7 @@ def backtrack(
         if WITH_FILL and unassigned_vars:
             for var in unassigned_vars:
                 assignment[var] = "*"
-        dprint(f"{indent}solution found! -> A={a_str(assignment)}")
+        dprint(f"{indent}solution found! -> A={assignment_str(assignment)}")
         return assignment
 
     dprint(f"{indent}unassigned: U={unassigned_vars}", end=" :: ")
@@ -175,15 +173,15 @@ def test():
         print(bar40)
         expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
         print(f'expression {i+1}: "{expression}=1"')
-        print(f"     clauses = {clist_str(clauses)}")
-        print(f"    literals = {vlist_str(literals)}")
-        print(f"   variables = {vlist_str(variables)}")
+        print(f"     clauses = {clauses_str(clauses)}")
+        print(f"    literals = {variables_str(literals)}")
+        print(f"   variables = {variables_str(variables)}")
 
         dprint()
         assignment = a_type()
         result = backtrack(assignment, variables, clauses)
         print()
-        print(f"solution: {a_str(result)}")
+        print(f"solution: {assignment_str(result)}")
         # dprint(f"solution: {a_str(result)}")
 
         print(bar40)
