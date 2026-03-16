@@ -53,14 +53,17 @@ def parse_cnf_expression(
     return expression, variables, literals, clauses
 
 
-def is_ksat(clauses:list[c_type],k:int)->bool:
-    return all(len(clause)==k for clause in clauses)
+def is_ksat(clauses: list[c_type], k: int) -> bool:
+    return all(len(clause) == k for clause in clauses)
 
-def is_2sat(clauses:list[c_type])->bool:
-    return is_ksat(clauses,2)
 
-def is_3sat(clauses:list[c_type])->bool:
-    return is_ksat(clauses,2)
+def is_2sat(clauses: list[c_type]) -> bool:
+    return is_ksat(clauses, 2)
+
+
+def is_3sat(clauses: list[c_type]) -> bool:
+    return is_ksat(clauses, 2)
+
 
 # --------------------------------------------------- #
 
@@ -140,6 +143,7 @@ def backtrack(
 
 
 # --------------------------------------------------- #
+
 
 def test():
     cnf_test_expressions = [

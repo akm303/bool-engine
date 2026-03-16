@@ -1,62 +1,7 @@
 from typing import Tuple
 from pprint import pformat
 
-from cnf_ksat import parse_cnf_expression
 from common import *
-
-
-node_type = str
-edge_type = Tuple[str, str]
-graph_type = dict[node_type, set[node_type]]
-
-
-# -------------------------------- #
-# Graph string formatting
-def node_str(node: node_type) -> str:
-    return node if is_complement(node) else node + " "
-
-
-def edge_str(edge: edge_type) -> str:
-    return f"( {node_str(edge[0])}, {node_str(edge[1])})"
-
-
-def collection_str(objs: list[node_type], obj_fmt, braces: str, delim: str) -> str:
-    return braces[0] + delim.join([obj_fmt(obj) for obj in objs]) + braces[1]
-
-
-def nodes_str(nodes: list[node_type], braces="[]", delim=", ") -> str:
-    return collection_str(nodes, node_str, braces=braces, delim=delim)
-
-
-def edges_str(nodes: list[edge_type], braces="[]", delim=", ") -> str:
-    return collection_str(nodes, edge_str, braces=braces, delim=delim)
-
-
-def nodelist_str(nodes: list[node_type]) -> str:
-    return nodes_str(nodes, braces="[]")
-
-
-def edgelist_str(edges: list[edge_type]) -> str:
-    return edges_str(edges, braces="[]")
-
-
-def nodeset_str(nodes: set[node_type]) -> str:
-    return nodes_str(nodes, braces=r"{}")
-
-
-def edgeset_str(edges: list[edge_type]) -> str:
-    return edges_str(edges, braces=r"{}")
-
-
-def adjgraph_str(
-    adj_graph: graph_type, indent: str = " ", one_line: bool = False
-) -> str:
-    spacer: str = "\n" if not one_line else " "
-    terms = []
-    for node, adj_nodes in adj_graph.items():
-        terms.append(f"{indent}{node_str(node)}: {nodeset_str(adj_nodes)}")
-    outstring = f",{spacer}".join(terms)
-    return f"{{{spacer}{outstring}{spacer}}}"
 
 
 # -------------------------------- #

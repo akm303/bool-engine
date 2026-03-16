@@ -6,31 +6,17 @@ type definitions, constants, and functions common across project
 
 import re
 import argparse
+from typing import Callable, Iterable, Collection, Tuple
 
 # --------------------------------------------------- #
-# type aliases
-e_type = str  # e = expression
-v_type = str  # v = variable
-l_type = v_type  # l = literal
-c_type = list[l_type]  # c = clause
-
-
-# regex patterns
-SUBEXPR_PATTERN = r"\([^()]+\)"
-LITERAL_PATTERN = r"(\w+'?)"  # r"(x_\d+'?)"
-# SATSOLVER_VARIABLE_PATTERN = r"(\w+)'?"  # r"(x_\d+'?)" #todo: test
-TRANSFORM_VARIABLE_PATTERN = r"X\d+"
-ASSIGNMENT_PATTERN = r":?="
-
-# --------------------------------------------------- #
-# debug print
+# debug helpers
 DEBUG_PRINT = False
 # DEBUG_PRINT = True
 
 
 def set_debug(to_debug: bool):
     """
-    sets global DEBUG_PRINT constant to true  
+    sets global DEBUG_PRINT constant to true
     (currently applied only with parsed args)
     """
     global DEBUG_PRINT
@@ -43,13 +29,16 @@ def dprint(*args, **kwargs):
     if DEBUG_PRINT:
         print(*args, **kwargs)
 
-def sfmt(*varlist:list,fmt=str) -> list:
+
+def sfmt(*varlist: list, fmt=str) -> list[str]:
     """format string for every element in list"""
     return [fmt(var) for var in varlist]
 
-def dfmt(*varlist:list,fmt=str) -> list:
+
+def dfmt(*varlist: list, fmt=str) -> list:
     """format string for debug prints if debug enabled, otherwise return as is"""
-    return varlist if not DEBUG_PRINT else sfmt(varlist,fmt=fmt)
+    return varlist if not DEBUG_PRINT else sfmt(varlist, fmt=fmt)
+
 
 def parse_debug_flag():
     parser = argparse.ArgumentParser()
@@ -58,22 +47,47 @@ def parse_debug_flag():
 
 
 # --------------------------------------------------- #
-# string formatting
+# type aliases
+e_type = str  # e = expression
+v_type = str  # v = variable
+l_type = v_type  # l = literal
+c_type = list[l_type]  # c = clause
+
+
+# --------------------------------------------------- #
+# regex string patterns
+SUBEXPR_PATTERN = r"\([^()]+\)"
+LITERAL_PATTERN = r"(\w+'?)"  # r"(x_\d+'?)"
+# SATSOLVER_VARIABLE_PATTERN = r"(\w+)'?"  # r"(x_\d+'?)" #todo: test
+TRANSFORM_VARIABLE_PATTERN = r"X\d+"
+ASSIGNMENT_PATTERN = r":?="
+
+
+# --------------------------------------------------- #
+# common string constructors
 def bar(n):
     return "-" * n
 
 
 bar40 = bar(40)
 
-def bool_num(value:bool)->int:
-    return 1 if True else 0
 
-def c_str(clause):
+# --------------------------------------------------- #
+# formatting helper functions
+def bool_num(value: bool) -> int:
+    """returns int representing bool value"""
+    assert isinstance(value, bool)
+    return 1 if value is True else 0
+
+
+# --------------------------------------------------- #
+# string formatting - Boolean Expressions (CNF)
+def c_str(clause: list[str]) -> str:
     """generates a string representing a clause"""
     return f"({f' + '.join(clause)})"
 
 
-def clist_str(clauses: list[list[v_type]]):
+def clist_str(clauses: list[list[v_type]]) -> str:
     """generates a string representing a list of clauses"""
     # djunc_delim = ' * '
     djunc_delim = ", "
@@ -82,23 +96,79 @@ def clist_str(clauses: list[list[v_type]]):
     return f"[{djunc_delim.join(rstr)}]"
 
 
-def vlist_str(variable_list):
+def vlist_str(variable_list: list[v_type]) -> str:
     """generates a string representing a list of variables"""
     return f"[{f', '.join(variable_list)}]"
 
 
-def lset_str(literal_set: set[str]):
+def lset_str(literal_set: set[str]) -> str:
     """generates a string representing a set of variables/literals"""
     return f"{{{f', '.join(sorted(list(literal_set)))}}}"
 
 
-def a_str(assignment: dict):
+def a_str(assignment: dict) -> str:
     """generates a string representing an assignment of boolean values to variables"""
     if not assignment:
         return None
     rstr = [f"{k} : {v} " for k, v in assignment.items()]
     rstr = f"{{ {', '.join(rstr)}}}"
     return rstr
+
+
+# -------------------------------- #
+# Graph string formatting
+
+
+node_type = str
+edge_type = Tuple[str, str]
+graph_type = dict[node_type, set[node_type]]
+
+
+def node_str(node: node_type) -> str:
+    return node if is_complement(node) else node + " "
+
+
+def edge_str(edge: edge_type) -> str:
+    return f"( {node_str(edge[0])}, {node_str(edge[1])})"
+
+
+def collection_str(objs: list[node_type], obj_fmt, braces: str, delim: str) -> str:
+    return braces[0] + delim.join([obj_fmt(obj) for obj in objs]) + braces[1]
+
+
+def nodes_str(nodes: list[node_type], braces="[]", delim=", ") -> str:
+    return collection_str(nodes, node_str, braces=braces, delim=delim)
+
+
+def edges_str(nodes: list[edge_type], braces="[]", delim=", ") -> str:
+    return collection_str(nodes, edge_str, braces=braces, delim=delim)
+
+
+def nodelist_str(nodes: list[node_type]) -> str:
+    return nodes_str(nodes, braces="[]")
+
+
+def edgelist_str(edges: list[edge_type]) -> str:
+    return edges_str(edges, braces="[]")
+
+
+def nodeset_str(nodes: set[node_type]) -> str:
+    return nodes_str(nodes, braces=r"{}")
+
+
+def edgeset_str(edges: list[edge_type]) -> str:
+    return edges_str(edges, braces=r"{}")
+
+
+def adjgraph_str(
+    adj_graph: graph_type, indent: str = " ", one_line: bool = False
+) -> str:
+    spacer: str = "\n" if not one_line else " "
+    terms = []
+    for node, adj_nodes in adj_graph.items():
+        terms.append(f"{indent}{node_str(node)}: {nodeset_str(adj_nodes)}")
+    outstring = f",{spacer}".join(terms)
+    return f"{{{spacer}{outstring}{spacer}}}"
 
 
 # syntax conversions
