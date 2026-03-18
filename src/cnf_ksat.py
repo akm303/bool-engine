@@ -85,15 +85,17 @@ def eval_clause(
     dprint(f"{indent}? eval clause {clause_str(clause)} => {clause_values}")
     return clause_values
 
+
 def is_satisfiable(
     variables: list[v_type],
     clauses: list[c_type],
-) -> Tuple[bool,a_type]:
+) -> Tuple[bool, a_type]:
     """returns whether or not an expression is satisfiable, and an assignment as evidence"""
     assignment = a_type()
-    assignment = backtrack(assignment,variables,clauses)
+    assignment = backtrack(assignment, variables, clauses)
     result = bool(assignment)
     return result, assignment
+
 
 def backtrack(
     assignment: a_type,
@@ -187,7 +189,7 @@ def test():
         print(f"   variables = {variables_str(variables)}")
 
         dprint()
-        result,assignment = is_satisfiable(variables, clauses)
+        result, assignment = is_satisfiable(variables, clauses)
         result = "is satisfiable" if result is True else "isn't satisfiable"
         print()
         print(f"expression {i+1}: {result}")
