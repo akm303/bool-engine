@@ -48,10 +48,15 @@ def parse_debug_flag():
 
 # --------------------------------------------------- #
 # Expression type aliases
-e_type = str  # e = expression
-v_type = str  # v = variable
-l_type = v_type  # l = literal
-c_type = list[l_type]  # c = clause
+expression_type = str
+variable_type = str
+literal_type = variable_type
+clause_type = list[literal_type]
+
+e_type = expression_type
+v_type = variable_type
+l_type = literal_type
+c_type = clause_type
 
 # -------------------------------- #
 # Graph type aliases
@@ -100,7 +105,10 @@ def bool_num(value: bool) -> int:
 # -------------------------------- #
 # canonical collection formatting
 def collection_str(
-    objs: Collection, obj_fmt: Callable, delim: str = ", ", output_type=None,
+    objs: Collection,
+    obj_fmt: Callable,
+    delim: str = ", ",
+    output_type=None,
 ) -> str:
     """formats a collection of objects"""
 
@@ -219,41 +227,67 @@ def assignment_str(assignment: a_type) -> str:
 
 # --------------------------------------------------- #
 # expression parsing / syntax conversions
+
+
 def to_local_syntax(string: str):
     operator_map = {
-        r"\lor": "+",
-        r"||": "+",
-        r"|": "+",
-        r"\land": ".",
-        r"&&": ".",
-        r"&": ".",
+        "+": [r"\lor", r"||", r"|"],
+        ".": [r"\land", r"&&", r"&"],
     }
-    for latex_op, local_op in operator_map.items():
-        string = string.replace(latex_op, local_op)
+    for local_op, latex_ops in operator_map.items():
+        for latex_op in latex_ops:
+            string = string.replace(latex_op, local_op)
     string = string.replace(" ", "")
     return string
 
 
-def to_LaTeX(string: e_type):
+# def to_local_syntax(string: str):
+#     operator_map = {
+#         r"\lor": "+",
+#         r"||": "+",
+#         r"|": "+",
+#         r"\land": ".",
+#         r"&&": ".",
+#         r"&": ".",
+#     }
+#     for latex_op, local_op in operator_map.items():
+#         string = string.replace(latex_op, local_op)
+#     string = string.replace(" ", "")
+#     return string
+
+
+def to_LaTeX(string: expression_type):
     string = to_local_syntax(string)
     operator_map = {
-        r"\lor ?": r"\land ",
-        "||": r"\lor ",
-        "|": r"\lor ",
-        "+": r"\lor ",
-        r"\land ?": r"\land ",
-        "&&": r"\land ",
-        "&": r"\land ",
-        ".": r"\land ",
+        r"\lor ": [r"\lor ?", "||", "|", "+"],
+        r"\land ": [r"\land ?", "&&", "&", "."],
     }
-    for local_op, code_op in operator_map.items():
-        string = string.replace(local_op, code_op)
+    for latex_op, target_ops in operator_map.items():
+        for op in target_ops:
+            string = string.replace(op, latex_op)
     return string
 
-    # for varstr in list(variables):
-    #     string.replace(r"\w+'?", rf"\\neg{varstr}")
-    # string.replace(" ", "")
-    # return string
+
+# def to_LaTeX(string: expression_type):
+#     string = to_local_syntax(string)
+#     operator_map = {
+#         r"\lor ?": r"\lor ",
+#         "||": r"\lor ",
+#         "|": r"\lor ",
+#         "+": r"\lor ",
+#         r"\land ?": r"\land ",
+#         "&&": r"\land ",
+#         "&": r"\land ",
+#         ".": r"\land ",
+#     }
+#     for local_op, code_op in operator_map.items():
+#         string = string.replace(local_op, code_op)
+#     return string
+
+# for varstr in list(variables):
+#     string.replace(r"\w+'?", rf"\\neg{varstr}")
+# string.replace(" ", "")
+# return string
 
 
 def to_code(string: str, language: str):
@@ -264,28 +298,20 @@ def to_code(string: str, language: str):
     is_python = language.lower() in ["py", "python"]
     is_c = language.lower() in ["c", "c++", "cpp"]
 
-    or_op = "|"
-    and_op = "&"
-    if is_c:
-        or_op = "||"
-        and_op = "&&"
-
+    or_op = "||" if is_c else "|" 
+    and_op = "&&" if is_c else "&"
+    
     operator_map = {
-        r"\lor": or_op,
-        "||": or_op,
-        "|": or_op,
-        "+": or_op,
-        r"\land": and_op,
-        "&&": and_op,
-        "&": and_op,
-        ".": and_op,
+        or_op: [r"\lor", "||", "|", "+"],
+        and_op: [r"\land", "&&", "&", "."],
     }
     dprint(f"  to {language} string:")
-    for local_op, code_op in operator_map.items():
-        string = string.replace(local_op, code_op)
-        # string2 = string.replace(local_op, code_op)
-        # dprint(f"  \"{string}\" (replacing \'{local_op}\' with \'{code_op}\') => \"{string2}\"")
-        # string = string2
+    for code_op, target_ops in operator_map.items():
+        for op in target_ops:
+            string = string.replace(op, code_op)
+            # string2 = string.replace(op, code_op)
+            # dprint(f"  \"{string}\" (replacing \'{op}\' with \'{code_op}\') => \"{string2}\"")
+            # string = string2
     return string
 
 
@@ -312,7 +338,7 @@ def base_variable(literal: l_type) -> v_type:
 # tests
 
 
-def check(original, expected, actual):
+def check_testcase(original, expected, actual):
     case_passed = expected == actual
     original = f'"{original}"'
     print(
@@ -343,7 +369,7 @@ def test_syntax():
         total_results = []
         for test_case, test_expected in local_syntax_tests.items():
             test_actual = to_local_syntax(test_case)
-            case_passed = check(test_case, test_expected, test_actual)
+            case_passed = check_testcase(test_case, test_expected, test_actual)
             total_results.append(case_passed)
         return total_results
 
@@ -393,14 +419,16 @@ def test_syntax():
                         test_expected = test_expected.replace("&", "&" * (i + 1))
                         test_expected = test_expected.replace("|", "|" * (i + 1))
                         test_actual = test_funcs[test_lang](test_case, lang)
-                        case_passed = check(test_case, test_expected, test_actual)
+                        case_passed = check_testcase(
+                            test_case, test_expected, test_actual
+                        )
                         total_results.append(case_passed)
                         # total_results.append((test_case,test_expected,test_actual,case_passed))
             else:
                 print(f"testing for conversion to {test_lang}")
                 for test_case, test_expected in test_cases.items():
                     test_actual = test_funcs[test_lang](test_case)
-                    case_passed = check(test_case, test_expected, test_actual)
+                    case_passed = check_testcase(test_case, test_expected, test_actual)
                     total_results.append(case_passed)
         return total_results
 
