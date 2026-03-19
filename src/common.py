@@ -226,93 +226,145 @@ def assignment_str(assignment: a_type) -> str:
 
 
 # --------------------------------------------------- #
-# expression parsing / syntax conversions
+# # expression parsing / syntax conversions
+# KEY_SYNTAX_LOCAL = "local"
+# KEY_SYNTAX_LATEX = "LaTeX"
+# KEY_SYNTAX_CODE_C = "C"
+# KEY_SYNTAX_CODE_PY = "Python"
+# KEY_OP_OR = "or"
+# KEY_OP_AND = "and"
+# KEY_OP_NEG = "negate"
+
+# KEY_OP_SYMBOL = "symbol"
+# KEY_OP_PREPEND = "prepend"
 
 
-def to_local_syntax(string: str):
-    operator_map = {
-        "+": [r"\lor", r"||", r"|"],
-        ".": [r"\land", r"&&", r"&"],
-    }
-    for local_op, latex_ops in operator_map.items():
-        for latex_op in latex_ops:
-            string = string.replace(latex_op, local_op)
+# def convert_syntax(from_lang, to_lang, string:str):
+#     # language : operators
+#     lang_map = {
+#         KEY_SYNTAX_LOCAL: {
+#             KEY_OP_OR: "+",
+#             KEY_OP_AND: ".",
+#             KEY_OP_NEG: {KEY_OP_SYMBOL: "'", KEY_OP_PREPEND: False},
+#         },
+#         KEY_SYNTAX_LATEX: {
+#             KEY_OP_OR: r"\lor",
+#             KEY_OP_AND: r"\land",
+#             KEY_OP_NEG: {KEY_OP_SYMBOL: r"\neg", KEY_OP_PREPEND: True},
+#         },
+#         KEY_SYNTAX_CODE_C: {
+#             KEY_OP_OR: r"||",
+#             KEY_OP_AND: "&&",
+#             KEY_OP_NEG: {KEY_OP_SYMBOL: "!", KEY_OP_PREPEND: True},
+#         },
+#         KEY_SYNTAX_CODE_PY: {
+#             KEY_OP_OR: "|",
+#             KEY_OP_AND: "&",
+#             KEY_OP_NEG: {KEY_OP_SYMBOL: "!", KEY_OP_PREPEND: True},
+#         },
+#     }
+#     from_lang = lang_map.pop(from_lang)
+#     to_lang = lang_map.pop(to_lang)
+
+
+def to_syntax(string: str, target_syntax: str):
+
+    target_syntax = target_syntax.lower()
     string = string.replace(" ", "")
+
+    # or_patterns = [r"\lor", "||", "|", "+"]
+    # and_patterns = [r"\land", "&&", "&", "."]
+
+    or_patterns = [r"\lor", "||", "|", "+"]
+    and_patterns = [r"\land", "&&", "&", "."]
+
+    or_op = "+"
+    and_op = "."
+    if target_syntax in ["latex"]:
+        or_op = r"\lor "
+        and_op = r"\land "
+    elif target_syntax in ["c", "cpp", "c++"]:
+        or_op = "||"
+        and_op = "&&"
+        or_patterns.remove("|")
+        # or_patterns.remove("||")
+        and_patterns.remove("&")
+        # and_patterns.remove("&&")
+    elif target_syntax in ["py", "python"]:
+        or_op = "|"
+        and_op = "&"
+        or_patterns.remove("|")
+        and_patterns.remove("&")
+
+
+    operator_map = {
+        or_op: [pattern for pattern in or_patterns],
+        and_op: [pattern for pattern in and_patterns],
+        # or_op: [pattern for pattern in or_patterns if pattern not in or_op],
+        # and_op: [pattern for pattern in and_patterns if pattern not in and_op],
+    }
+    for local_op, target_ops in operator_map.items():
+        for op in target_ops:
+            dprint(f"replacing \'{op}\' with \'{local_op}\'")
+            string = string.replace(op, local_op)
     return string
 
+def to_local(string: str) -> str:
+    return to_syntax(string,"local")
+
+def to_LaTeX(string: str) -> str:
+    return to_syntax(string,"latex")
+
+def to_code(string:str,lang:str) -> str:
+    return to_syntax(string,lang)
 
 # def to_local_syntax(string: str):
 #     operator_map = {
-#         r"\lor": "+",
-#         r"||": "+",
-#         r"|": "+",
-#         r"\land": ".",
-#         r"&&": ".",
-#         r"&": ".",
+#         "+": [r"\lor", r"||", r"|"],
+#         ".": [r"\land", r"&&", r"&"],
 #     }
-#     for latex_op, local_op in operator_map.items():
-#         string = string.replace(latex_op, local_op)
+#     for local_op, target_ops in operator_map.items():
+#         for op in target_ops:
+#             string = string.replace(op, local_op)
 #     string = string.replace(" ", "")
 #     return string
 
 
-def to_LaTeX(string: expression_type):
-    string = to_local_syntax(string)
-    operator_map = {
-        r"\lor ": [r"\lor ?", "||", "|", "+"],
-        r"\land ": [r"\land ?", "&&", "&", "."],
-    }
-    for latex_op, target_ops in operator_map.items():
-        for op in target_ops:
-            string = string.replace(op, latex_op)
-    return string
-
-
 # def to_LaTeX(string: expression_type):
-#     string = to_local_syntax(string)
+#     string = to_local(string)
 #     operator_map = {
-#         r"\lor ?": r"\lor ",
-#         "||": r"\lor ",
-#         "|": r"\lor ",
-#         "+": r"\lor ",
-#         r"\land ?": r"\land ",
-#         "&&": r"\land ",
-#         "&": r"\land ",
-#         ".": r"\land ",
+#         r"\lor ": [r"\lor", "||", "|", "+"],
+#         r"\land ": [r"\land", "&&", "&", "."],
 #     }
-#     for local_op, code_op in operator_map.items():
-#         string = string.replace(local_op, code_op)
+#     for latex_op, target_ops in operator_map.items():
+#         for op in target_ops:
+#             string = string.replace(op, latex_op)
 #     return string
 
-# for varstr in list(variables):
-#     string.replace(r"\w+'?", rf"\\neg{varstr}")
-# string.replace(" ", "")
-# return string
 
+# def to_code(string: str, language: str):
+#     dprint(f"  string: {string}")
+#     string = to_local(string)
+#     dprint(f"  to local: {string}")
 
-def to_code(string: str, language: str):
-    dprint(f"  string: {string}")
-    string = to_local_syntax(string)
-    dprint(f"  to local: {string}")
+#     is_python = language.lower() in ["py", "python"]
+#     is_c = language.lower() in ["c", "c++", "cpp"]
 
-    is_python = language.lower() in ["py", "python"]
-    is_c = language.lower() in ["c", "c++", "cpp"]
+#     or_op = "||" if is_c else "|"
+#     and_op = "&&" if is_c else "&"
 
-    or_op = "||" if is_c else "|" 
-    and_op = "&&" if is_c else "&"
-    
-    operator_map = {
-        or_op: [r"\lor", "||", "|", "+"],
-        and_op: [r"\land", "&&", "&", "."],
-    }
-    dprint(f"  to {language} string:")
-    for code_op, target_ops in operator_map.items():
-        for op in target_ops:
-            string = string.replace(op, code_op)
-            # string2 = string.replace(op, code_op)
-            # dprint(f"  \"{string}\" (replacing \'{op}\' with \'{code_op}\') => \"{string2}\"")
-            # string = string2
-    return string
+#     operator_map = {
+#         or_op: [r"\lor", "||", "|", "+"],
+#         and_op: [r"\land", "&&", "&", "."],
+#     }
+#     dprint(f"  to {language} string:")
+#     for code_op, target_ops in operator_map.items():
+#         for op in target_ops:
+#             string = string.replace(op, code_op)
+#             # string2 = string.replace(op, code_op)
+#             # dprint(f"  \"{string}\" (replacing \'{op}\' with \'{code_op}\') => \"{string2}\"")
+#             # string = string2
+#     return string
 
 
 # --------------------------------------------------- #
@@ -368,7 +420,7 @@ def test_syntax():
 
         total_results = []
         for test_case, test_expected in local_syntax_tests.items():
-            test_actual = to_local_syntax(test_case)
+            test_actual = to_local(test_case)
             case_passed = check_testcase(test_case, test_expected, test_actual)
             total_results.append(case_passed)
         return total_results
