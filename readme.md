@@ -41,25 +41,21 @@ run testcases:
 - returns an assignment/mapping of variables to boolean values such that the expression evaluates to True (or 1)
 
 #### k-SAT Solver
-Solves k-SAT problem using dynamic programming to generate a candidate assignment and prove satisfiability.
-Generates a viable assignment of variables to boolean values
-[`src/cnf_ksat`](src/cnf_ksat.py)
+Solves k-SAT problem using dynamic programming to generate a candidate assignment and prove satisfiability.  
+Generates a viable assignment of variables to boolean values  
+[`src/cnf_ksat`](src/cnf_ksat.py)  
 
-run tests:
-`python src/cnf_ksat.py`
-run custom expression:
-`python src/cnf_ksat.py -e "<cnf expression>"`
+run tests: `python src/cnf_ksat.py`  
+run custom: `python src/cnf_ksat.py -e "<cnf expression>"`  
 
 
 #### 2-SAT Solver
-Solves 2SAT problem in linear time using implication graph
-Based on the algorithm by Aspvall–Plass–Tarjan.
-[`src/cnf_2sat`](src/cnf_2sat.py)
+Solves 2SAT problem in linear time using implication graph  
+Based on the algorithm by Aspvall–Plass–Tarjan.  
+[`src/cnf_2sat`](src/cnf_2sat.py)  
 
-run tests:
-`python src/cnf_2sat.py`
-run custom expression:
-`python src/cnf_ksat.py -e "<2sat expression>"`
+run tests: `python src/cnf_2sat.py`  
+run custom: `python src/cnf_ksat.py -e "<2sat expression>"`  
 
 ---
 
