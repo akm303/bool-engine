@@ -11,7 +11,6 @@ from typing import Callable, Iterable, Collection, Tuple
 # --------------------------------------------------- #
 # debug helpers
 DEBUG_PRINT = False
-# DEBUG_PRINT = True
 
 
 def set_debug(to_debug: bool):
@@ -21,6 +20,7 @@ def set_debug(to_debug: bool):
     """
     global DEBUG_PRINT
     DEBUG_PRINT = to_debug
+
 
 
 def dprint(*args, **kwargs):
@@ -40,9 +40,10 @@ def dfmt(*varlist: list, fmt=str) -> list:
     return varlist if not DEBUG_PRINT else sfmt(varlist, fmt=fmt)
 
 
-def parse_debug_flag():
+def parse_flags():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", action="store_true")
+    parser.add_argument("-d", "--debug", action="store_true") # to print debug statements
+    parser.add_argument("-e", "--expression", ) # to run tests
     return parser.parse_args()
 
 
@@ -395,7 +396,8 @@ def test_syntax():
 
 
 if __name__ == "__main__":
-    args = parse_debug_flag()
+    args = parse_flags()
     set_debug(args.debug)
-    # set_test(True)
-    test_syntax()
+
+    tests = test_syntax
+    tests()

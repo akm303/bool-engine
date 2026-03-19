@@ -74,6 +74,40 @@ def is_satisfiable(
     return len(contradictions) <= 0, contradictions
 
 
+def run(cnf_expr, run_i=0):
+    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
+    assert is_2sat(clauses)
+
+    # each clause has 2 literals because 2sat
+    nodes = nodes_from_variables(variables)
+    edges = edges_from_clauses(clauses)
+    adj_graph = build_adj_graph(nodes, edges)
+
+    print(bar40)
+    test_title = f"test {run_i} expression ::"
+    print(f'{test_title}  "{cnf_expr}"')
+    print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
+    print()
+    print(f"nodes: {nodelist_str(nodes)}")
+    print(f"edges: {edgelist_str(edges)}")
+    print(f"graph (adjacency): {adjgraph_str(adj_graph,indent='  ')}")
+
+    dprint()
+    paths = {}
+    for node1 in adj_graph:
+        paths[node1] = {}
+        for node2 in adj_graph:
+            paths[node1][node2] = bool_num(has_path(node1, node2, adj_graph))
+        dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
+
+    dprint()
+    is_sat, contradiction = is_satisfiable(adj_graph, get_all_contradictions=True)
+    print(f"is satisfiable? {is_sat}")
+    if not is_sat:
+        print(f"evidence: paths exist between {contradiction}")
+    return is_sat
+
+
 def tests():
     # dictionary mapping an expression to whether or not its satisfiable
     cnf_test_expressions = {
@@ -85,7 +119,7 @@ def tests():
         "(X+Y)(X'+Y)": True,
         "(X+Y)(X'+Y')": True,
         "(x_1' + x_2)(x_1' + x_3)": True,
-        # example form 2SAT on website
+        # example from 2SAT on website
         "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
         "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
         "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
@@ -96,53 +130,14 @@ def tests():
     }
 
     test_results = {}
-    i = 0
+    test_i = 0
     for cnf_expr, expected in cnf_test_expressions.items():
-        i += 1
-        expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
-        assert is_2sat(clauses)
-
-        # each clause has 2 literals because 2sat
-        nodes = nodes_from_variables(variables)
-        edges = edges_from_clauses(clauses)
-        adj_graph = build_adj_graph(nodes, edges)
-
-        print(bar40)
-        test_title = f"test {i} expression ::"
-        print(f'{test_title}  "{cnf_expr}"')
-        print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
-        print()
-        print(f"nodes: {nodelist_str(nodes)}")
-        print(f"edges: {edgelist_str(edges)}")
-        print(f"graph (adjacency): {adjgraph_str(adj_graph,indent='  ')}")
-
-        dprint()
-        dprint("reachable:")
-        for node in adj_graph:
-            reachables = get_reachable(node, adj_graph)
-            dprint(f"from {node}: {nodelist_str(reachables)}")
-
-        dprint()
-        paths = {}
-        for node1 in adj_graph:
-            paths[node1] = {}
-            for node2 in adj_graph:
-                paths[node1][node2] = bool_num(has_path(node1, node2, adj_graph))
-            dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
-
-        dprint()
-        is_sat, contradiction = is_satisfiable(adj_graph, get_all_contradictions=True)
-        print(f"is satisfiable? {is_sat}")
-        if not is_sat:
-            print(f"evidence: paths exist between {contradiction}")
-
+        test_i += 1
+        is_sat = run(cnf_expr,test_i)
         test_passed = "Pass" if is_sat == expected else "Fail"
-        print(f"test {i}: {test_passed}")
+        print(f"test {test_i}: {test_passed}")
 
-        # test_passed = is_sat == expected
-        # print(f"test: {'Pass' if test_passed else 'Fail'}")
-
-        test_results[i] = test_passed
+        test_results[test_i] = test_passed
         print(bar40)
         print()
     print()
@@ -155,6 +150,9 @@ def tests():
 
 
 if __name__ == "__main__":
-    args = parse_debug_flag()
+    args = parse_flags()
     set_debug(args.debug)
-    tests()
+    if args.expression is not None:
+        run(args.expression)
+    else:
+        tests()

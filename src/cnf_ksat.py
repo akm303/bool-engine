@@ -152,9 +152,28 @@ def backtrack(
 
 
 # --------------------------------------------------- #
+def run(cnf_expr:e_type, run_i = 0):
+    print(bar40)
+    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
+    print(f'expression {run_i+1}: "{expression}=1"')
+    print(f"     clauses = {clauses_str(clauses)}")
+    print(f"    literals = {variables_str(literals)}")
+    print(f"   variables = {variables_str(variables)}")
 
+    dprint()
+    result, assignment = is_satisfiable(variables, clauses)
+    result = "is satisfiable" if result is True else "isn't satisfiable"
+    print()
+    print(f"expression {run_i+1}: {result}")
+    print(f"solution: {assignment_str(assignment)}")
+    # dprint(f"solution: {a_str(result)}")
 
-def test():
+    print(bar40)
+    print()
+
+# --------------------------------------------------- #
+
+def tests():
     cnf_test_expressions = [
         # custom examples
         "(A)",  # 1. {'A':1}
@@ -180,27 +199,14 @@ def test():
     ]
 
     for i, cnf_expr in enumerate(cnf_test_expressions):
+        run(cnf_expr,i)
 
-        print(bar40)
-        expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
-        print(f'expression {i+1}: "{expression}=1"')
-        print(f"     clauses = {clauses_str(clauses)}")
-        print(f"    literals = {variables_str(literals)}")
-        print(f"   variables = {variables_str(variables)}")
-
-        dprint()
-        result, assignment = is_satisfiable(variables, clauses)
-        result = "is satisfiable" if result is True else "isn't satisfiable"
-        print()
-        print(f"expression {i+1}: {result}")
-        print(f"solution: {assignment_str(assignment)}")
-        # dprint(f"solution: {a_str(result)}")
-
-        print(bar40)
-        print()
 
 
 if __name__ == "__main__":
-    args = parse_debug_flag()
+    args = parse_flags()
     set_debug(args.debug)
-    test()
+    if args.expression is not None:
+        run(args.expression)
+    else:
+        tests()
