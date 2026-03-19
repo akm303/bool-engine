@@ -1,12 +1,15 @@
-# Boolean Logic (V1)
-Custom Python Library For Implmentation Of Boolean Logic and Truth Table Operations
+# Boolean Engine (V1)
+Custom Python Library For Boolean Logic Solvers and Truth Table Operations
 
 
 ## Features
-- [Boolean Logic (V1)](#boolean-logic-v1)
+- [Boolean Engine (V1)](#boolean-engine-v1)
   - [Features](#features)
     - [Truthtable Generation](#truthtable-generation)
-    - [SAT Solver](#sat-solver)
+    - [SAT Solvers](#sat-solvers)
+      - [CNF Parser](#cnf-parser)
+      - [k-SAT Solver](#k-sat-solver)
+      - [2-SAT Solver](#2-sat-solver)
 
 
 ---
@@ -27,18 +30,36 @@ run testcases:
 
 ---
 
-### SAT Solver
-Solves SAT problem for any boolean equation in CNF form equal to 1 (v1)
-[`src/sat`](src/sat.py)
-- pass a string representing the expression
+### SAT Solvers
+
+#### CNF Parser
+[`src/cnf_ksat`](src/cnf_ksat.py)
+- a string representing of the expression is passed to the parser
   - each expression made up of a product (disjunction) of clauses
   - each clause made up of a sum (conjunction) of literals
   - each literal is a variable or its complement
 - returns an assignment/mapping of variables to boolean values such that the expression evaluates to True (or 1)
 
-run testcases:
-`python src/sat.py`
+#### k-SAT Solver
+Solves k-SAT problem using dynamic programming to generate a candidate assignment and prove satisfiability.
+Generates a viable assignment of variables to boolean values
+[`src/cnf_ksat`](src/cnf_ksat.py)
 
+run tests:
+`python src/cnf_ksat.py`
+run custom expression:
+`python src/cnf_ksat.py -e "<cnf expression>"`
+
+
+#### 2-SAT Solver
+Solves 2SAT problem in linear time using implication graph
+Based on the algorithm by Aspvall–Plass–Tarjan.
+[`src/cnf_2sat`](src/cnf_2sat.py)
+
+run tests:
+`python src/cnf_2sat.py`
+run custom expression:
+`python src/cnf_ksat.py -e "<2sat expression>"`
 
 ---
 
