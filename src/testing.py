@@ -14,6 +14,7 @@ from typing import Collection, Tuple, Callable, Iterable, Any
 
 from cnf_2sat import run as run_2sat
 from cnf_ksat import run as run_ksat
+from common import *
 
 PASS = "Pass"
 FAIL = "Fail"
@@ -24,12 +25,12 @@ def passes(result: bool) -> str:
     return PASS if result else FAIL
 
 
-def exact_check(input:Any, expected: Any, actual: Any) -> bool:
+def exact_check(input: Any, expected: Any, actual: Any) -> bool:
     """check if actual result is expected result"""
     return expected == actual
 
 
-def list_check(input:Any, potential: Collection, actual: Any) -> bool:
+def list_check(input: Any, potential: Collection, actual: Any) -> bool:
     """check if actual result in list of potential expected results"""
     return actual in potential
 
@@ -51,7 +52,8 @@ class TestCase:
         return {"input": self.input, "expected": self.expected, "check": self.validator}
 
     def check(self, actual) -> bool:
-        return self.validator(self.input, self.expected, actual)
+        return passes(self.validator(self.input, self.expected, actual))
+    
 
 
 class TestRunner:
@@ -69,14 +71,33 @@ class TestRunner:
 
     def run(self):
         self.results = {
-            f"Test {i}": self.run_case(test_case, i)
+            test_case.title: self.run_case(test_case, i)
             for i, test_case in enumerate(self.test_cases)
         }
-        # for i,test_case in enumerate(self.test_cases):
-        #     self.results[f'Test {i}'] = self.run_case(test_case, i)
 
     def get_results(self):
         return self.results
+
+    def all_passed(self):
+        return all(result == PASS for result in self.results.values())
+
+    def get_passed(self):
+        pass_list =  [
+            test_id
+            for test_id, test_result in self.results.items()
+            if test_result == PASS
+        ]
+        dprint(f"passed: {pass_list}")
+        return pass_list
+
+    def get_failed(self):
+        fail_list = [
+            test_id
+            for test_id, test_result in self.results.items()
+            if test_result == FAIL
+        ]
+        dprint(f"failed: {fail_list}")
+        return fail_list
 
 
 cnf_2sat_tests = {
@@ -96,10 +117,8 @@ cnf_2sat_tests = {
     # custom examples
     "(x_a' + x_a)": True,
     "(A + A)(A' + A')": False,
+    "(A + A)(A' + A')": True, # should fail
 }
-cnf_2sat_tests = [
-    TestCase(expr, result, exact_check) for expr, result in cnf_2sat_tests.items()
-]
 
 cnf_tests = [
     # custom examples
@@ -124,3 +143,32 @@ cnf_tests = [
     "(x_a' + x_a)",
     "(A + A)(A' + A')",
 ]
+
+
+def test_tester():
+    def ab_sum(a,b):
+        return a+b
+    
+    inputs = [(a,b) for b in range(10) for a in range(10)]
+    test_results = {(a,b):a+b for a,b in inputs}
+
+    tester = TestRunner()
+
+def run_tests():
+    test_id = (i for i in range(len(cnf_2sat_tests)))
+    tests_2sat = [
+        TestCase(next(test_id), expr, result, exact_check)
+        for expr, result in cnf_2sat_tests.items()
+    ]
+    tester = TestRunner(tests_2sat, run_2sat)
+    tester.run()
+    results = tester.get_results()
+    all_passed = tester.all_passed()
+    output_msg = bar40+'\n'
+    output_msg += "All Passed" if all_passed else f"Failed Tests:\n  {tester.get_failed()}"
+    print(output_msg) 
+
+if __name__ == "__main__":
+    args = parse_flags()
+    set_debug(args.debug)
+    run_tests()

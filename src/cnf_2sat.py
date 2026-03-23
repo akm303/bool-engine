@@ -67,7 +67,7 @@ def is_satisfiable(
         dprint(f"  has_path({n_str},{negn_str})? {found_n_to_negn_path}")
         dprint(f"  has_path({negn_str},{n_str})? {found_negn_to_n_path}")
         if found_n_to_negn_path and found_negn_to_n_path:
-            print(f"  found bidir paths between [ {n_str} <=> {negn_str} ]")
+            print(f"  found bidirectional paths between [ {n_str} <=> {negn_str} ]")
             contradictions.append((n, negn))
             if not get_all_contradictions:
                 return False, contradictions
