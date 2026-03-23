@@ -74,7 +74,7 @@ def is_satisfiable(
     return len(contradictions) <= 0, contradictions
 
 
-def run(cnf_expr, run_i=0):
+def run(cnf_expr, run_i=-1):
     expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
     assert is_2sat(clauses)
 
@@ -84,7 +84,9 @@ def run(cnf_expr, run_i=0):
     adj_graph = build_adj_graph(nodes, edges)
 
     print(bar40)
-    test_title = f"test {run_i} expression ::"
+    expr_counter_str = f' {run_i+1}' if run_i > -1 else ' '
+    test_title = f"expression{expr_counter_str} ::"
+    
     print(f'{test_title}  "{cnf_expr}"')
     print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
     print()

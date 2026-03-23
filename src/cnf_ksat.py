@@ -152,26 +152,36 @@ def backtrack(
 
 
 # --------------------------------------------------- #
-def run(cnf_expr:e_type, run_i = 0):
+def run(cnf_expr: e_type, to_output = "both", run_i:int=-1):
     print(bar40)
     expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
-    print(f'expression {run_i+1}: "{expression}=1"')
+    expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
+    print(f'expression{expr_counter_str} :: "{expression}=1"')
     print(f"     clauses = {clauses_str(clauses)}")
     print(f"    literals = {variables_str(literals)}")
     print(f"   variables = {variables_str(variables)}")
 
     dprint()
-    result, assignment = is_satisfiable(variables, clauses)
-    result = "is satisfiable" if result is True else "isn't satisfiable"
+    is_sat, assignment = is_satisfiable(variables, clauses)
+    is_sat_str = "is satisfiable" if is_sat is True else "isn't satisfiable"
     print()
-    print(f"expression {run_i+1}: {result}")
+    print(f"expression{expr_counter_str}: {is_sat_str}")
     print(f"solution: {assignment_str(assignment)}")
-    # dprint(f"solution: {a_str(result)}")
 
     print(bar40)
     print()
 
+    if to_output == "assignment":
+        return assignment
+    elif to_output == "is_sat":
+        return is_sat
+    else:
+        return is_sat,assignment
+
+
+
 # --------------------------------------------------- #
+
 
 def tests():
     cnf_test_expressions = [
@@ -199,8 +209,7 @@ def tests():
     ]
 
     for i, cnf_expr in enumerate(cnf_test_expressions):
-        run(cnf_expr,i)
-
+        result = run(cnf_expr, to_output = "both",run_i = i)
 
 
 if __name__ == "__main__":
