@@ -11,6 +11,8 @@ solver = {algorithm, }
 """
 
 from typing import Collection, Tuple, Callable, Iterable, Any
+from itertools import count
+from pprint import pformat
 
 from cnf_2sat import run as run_2sat
 from cnf_ksat import run as run_ksat
@@ -38,11 +40,13 @@ def list_check(input: Any, potential: Collection, actual: Any) -> bool:
 class TestCase:
     """an individual test case and its expected result"""
 
+    test_counter = count()
+
     def __init__(
         self, test_id, input_value, expected, validator: Callable, label: str = ""
     ):
-        self.test_id = test_id
-        self.title = f"Test {test_id}"
+        self.test_id = next(TestCase.test_counter)
+        self.title = f"Test {self.test_id}"
         self.input = input_value
         self.expected = expected  # expected result/output
         self.validator = validator
@@ -51,9 +55,26 @@ class TestCase:
     def get_testcase(self):
         return {"input": self.input, "expected": self.expected, "check": self.validator}
 
+    def call(self, solver: Callable):
+        # ! issue with this; if input is supposed to be a single tuple rather than its internals
+        if isinstance(self.input, tuple):
+            return solver(*self.input)
+        return solver(self.input)
+
     def check(self, actual) -> bool:
         return passes(self.validator(self.input, self.expected, actual))
-    
+
+    def __hash__(self):
+        return hash(self.test_id)
+
+    def __eq__(self, item):
+        return isinstance(item, TestCase) and self.test_id == item.test_id
+
+    def __str__(self):
+        return self.title
+
+    def __repr__(self):
+        return f"\n{self.title} : {self.input} -> {self.expected} ({self.validator.__name__})?"
 
 
 class TestRunner:
@@ -65,26 +86,31 @@ class TestRunner:
         self.results = {}
 
     def run_case(self, test_case: TestCase, i: int = 0) -> bool:
-        test_actual = self.solver(test_case.input, i)
+        test_actual = test_case.call(self.solver)
         test_result = test_case.check(test_actual)
         return test_result
 
+    # def run_case(self, test_case: TestCase, i: int = 0) -> bool:
+    #     test_actual = self.solver(test_case.input, i)
+    #     test_result = test_case.check(test_actual)
+    #     return test_result
+
     def run(self):
         self.results = {
-            test_case.title: self.run_case(test_case, i)
+            test_case: self.run_case(test_case, i)
             for i, test_case in enumerate(self.test_cases)
         }
 
     def get_results(self):
-        return self.results
+        return {test_case.title: result for test_case, result in self.results.items()}
 
     def all_passed(self):
         return all(result == PASS for result in self.results.values())
 
     def get_passed(self):
-        pass_list =  [
-            test_id
-            for test_id, test_result in self.results.items()
+        pass_list = [
+            f"{test_case.title}: {test_case.input}"
+            for test_case, test_result in self.results.items()
             if test_result == PASS
         ]
         dprint(f"passed: {pass_list}")
@@ -92,15 +118,31 @@ class TestRunner:
 
     def get_failed(self):
         fail_list = [
-            test_id
-            for test_id, test_result in self.results.items()
+            f"{test_case.title}: {test_case.input}"
+            for test_case, test_result in self.results.items()
             if test_result == FAIL
         ]
         dprint(f"failed: {fail_list}")
         return fail_list
 
+    def __str__(self):
+        all_passed = self.all_passed()
+        passing_tests = self.get_passed()
+        failing_tests = self.get_failed()
 
-cnf_2sat_tests = {
+        rstring = (
+            f"\n  all passed? {all_passed}"
+            + f"\n    passing:"
+            + f"\n    {pformat(passing_tests,compact=True,indent=6)}"
+            + f"\n    failing:"
+            + f"\n    {pformat(failing_tests,compact=True,indent=6)}"
+        )
+
+        # rstring += f"\n  test cases:" + f"\n    {self.test_cases}"
+        return rstring
+
+
+cnf_2sat_cases = {
     # custom examples
     "(X+Y)": True,
     "(X+Y')": True,
@@ -117,7 +159,7 @@ cnf_2sat_tests = {
     # custom examples
     "(x_a' + x_a)": True,
     "(A + A)(A' + A')": False,
-    "(A + A)(A' + A')": True, # should fail
+    "(A + A)(A' + A')": True,  # should fail
 }
 
 cnf_tests = [
@@ -145,28 +187,54 @@ cnf_tests = [
 ]
 
 
-def test_tester():
-    def ab_sum(a,b):
-        return a+b
-    
-    inputs = [(a,b) for b in range(10) for a in range(10)]
-    test_results = {(a,b):a+b for a,b in inputs}
+def tester_test():
+    def run_sum(a, b):
+        return a + b
 
-    tester = TestRunner()
+    inputs = [(a, b) for b in range(10) for a in range(10)]
+    test_results = {(a, b): a + b for a, b in inputs}
+    sum_test = {
+        TestCase("", test_input, result, exact_check)
+        for test_input, result in test_results.items()
+    }
+
+    tester = TestRunner(sum_test, run_sum)
+    print(f"Pre Run: tester: {tester}")
+
+    tester.run()
+    print("Running Test...")
+
+    print(f"Post Run: tester: {tester}")
+
+
+sat_funcs = [
+    run_2sat,
+    run_ksat,
+]
 
 def run_tests():
-    test_id = (i for i in range(len(cnf_2sat_tests)))
+    print(bar40)
+    test_id = (i for i in range(len(cnf_2sat_cases)))
     tests_2sat = [
         TestCase(next(test_id), expr, result, exact_check)
-        for expr, result in cnf_2sat_tests.items()
+        for expr, result in cnf_2sat_cases.items()
     ]
     tester = TestRunner(tests_2sat, run_2sat)
     tester.run()
-    results = tester.get_results()
     all_passed = tester.all_passed()
-    output_msg = bar40+'\n'
-    output_msg += "All Passed" if all_passed else f"Failed Tests:\n  {tester.get_failed()}"
-    print(output_msg) 
+    output_msg = bar40 + "\n"
+    output_msg += (
+        "All Passed" if all_passed else f"Failed Tests:\n  {tester.get_failed()}"
+    )
+    print(output_msg)
+
+
+
+def all_tests():
+    print(bar40)
+    test_tester()
+    print(bar40)
+    print()
 
 if __name__ == "__main__":
     args = parse_flags()
