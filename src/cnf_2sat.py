@@ -87,7 +87,7 @@ def run(cnf_expr, run_i=-1):
     expr_counter_str = f' {run_i+1}' if run_i > -1 else ' '
     test_title = f"expression{expr_counter_str} ::"
     
-    print(f'{test_title}  "{cnf_expr}"')
+    print(f'{test_title}   "{cnf_expr}"')
     print(f'(formatted) ie.  "{expression}"')
     # print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
     print()

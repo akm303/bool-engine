@@ -262,12 +262,16 @@ def tester_test():
     def run_sum(a, b):
         return a + b
 
+
     def tester_checker(
-        tester: TestRunner, all_should_pass: True, n_should_pass, n_should_fail
+        tester: TestRunner, all_should_pass: True, n_should:dict
     ):
         all_pass = tester.all_passed()
         n_passed = len(tester.get_passed())
         n_failed = len(tester.get_failed())
+
+        n_should_pass = n_should["pass"]
+        n_should_fail = n_should["fail"]
 
         if (all_pass and not all_should_pass) or (not all_pass and all_should_pass):
             print(
@@ -283,6 +287,29 @@ def tester_test():
             return False
 
         return True
+    
+
+    # def tester_checker(
+    #     tester: TestRunner, all_should_pass: True, n_should_pass, n_should_fail
+    # ):
+    #     all_pass = tester.all_passed()
+    #     n_passed = len(tester.get_passed())
+    #     n_failed = len(tester.get_failed())
+
+    #     if (all_pass and not all_should_pass) or (not all_pass and all_should_pass):
+    #         print(
+    #             f"Tester Failed (all_pass={all_pass} when expected_pass={all_should_pass})"
+    #         )
+    #         return False
+
+    #     if n_failed != n_should_fail:
+    #         print(f"Tester Failed ({n_failed} tests failed, expected {n_should_fail})")
+    #         return False
+    #     if n_passed != n_should_pass:
+    #         print(f"Tester Failed ({n_passed} tests passed, expected {n_should_pass})")
+    #         return False
+
+    #     return True
 
     print()
 
@@ -292,16 +319,40 @@ def tester_test():
         KEY_CASES: {(a, b): a + b for b in range(N) for a in range(N)},
     }
 
-    # test_should = {
+
+    # # v1
+    # tester_should_have["pre"]["pass"] = 0
+    # tester_should_have["pre"]["fail"] = 0
+    # tester_should_have["post"]["pass"] = len(tester_collection[KEY_CASES])
+    # tester_should_have["post"]["fail"] = 0
+
+
+    # # v2
+    # # how many tests should pass/fail in the tester
+    # # list representing n tests passing [pre, post] tester.run()
+    # tester_should_have = {
     #     # pass/fail : [n tests failed pre, n tests failed post];
-    #     'pass':[0,len(tester_collection[KEY_CASES])],
-    #     'fail':[0,0]
+    #     "passing": {"pre": 0, "post": len(tester_collection[KEY_CASES])},
+    #     "failing": {"pre": 0, "post": 0},
     # }
+    # tester_should_have["passing"]["pre"] = 0
+    # tester_should_have["failing"]["pre"] = 0
+    # tester_should_have["passing"]["post"] = len(tester_collection[KEY_CASES])
+    # tester_should_have["failing"]["post"] = 0
+
+
+    # # v3
+    # number of tests that should pass/fail in the tester pre/post tester.run()
+    tester_should_have = {
+        "pre": {"pass": 0, "fail": 0},
+        "post": {"pass": len(tester_collection[KEY_CASES]), "fail": 0},
+    }
+
+    # tester_should_have["pre"]["pass"]
+    # tester_should_have["pre"]["fail"]
+    # tester_should_have["post"]["pass"]
+    # tester_should_have["post"]["fail"]
     
-    should_pass_pre = 0
-    should_fail_pre = 0
-    should_pass_post = len(tester_collection[KEY_CASES])
-    should_fail_post = 0
 
     print("Testing test script (base):")
     print_test_collection(tester_collection)
@@ -312,8 +363,7 @@ def tester_test():
     tester_passed = tester_checker(
         tester,
         all_should_pass=False,
-        n_should_pass=should_pass_pre,
-        n_should_fail=should_fail_pre,
+        n_should=tester_should_have["pre"]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -325,18 +375,19 @@ def tester_test():
     tester_passed = tester_checker(
         tester,
         all_should_pass=True,
-        n_should_pass=should_pass_post,
-        n_should_fail=should_fail_post,
+        n_should=tester_should_have["post"]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
         return
 
+
     print()
     print()
     tester_collection[KEY_CASES][(0, 0)] = 1  # force test to fail
-    should_fail_post += 1
-    should_pass_post -= 1
+    
+    tester_should_have["post"]["fail"] += 1
+    tester_should_have["post"]["pass"] -= 1
     print("Testing test script (1 failure):")
     print_test_collection(tester_collection)
     print()
@@ -346,8 +397,7 @@ def tester_test():
     tester_passed = tester_checker(
         tester,
         all_should_pass=False,
-        n_should_pass=should_pass_pre,
-        n_should_fail=should_fail_pre,
+        n_should=tester_should_have["pre"]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -359,8 +409,7 @@ def tester_test():
     tester_passed = tester_checker(
         tester,
         all_should_pass=False,
-        n_should_pass=should_pass_post,
-        n_should_fail=should_fail_post,
+        n_should=tester_should_have["post"]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -369,8 +418,8 @@ def tester_test():
     print()
     print()
     tester_collection[KEY_CASES][(N - 1, N - 1)] = 0  # force test to fail second time
-    should_fail_post += 1
-    should_pass_post -= 1
+    tester_should_have["post"]["fail"] += 1
+    tester_should_have["post"]["pass"] -= 1
     print("Testing test script (2 failures):")
     print_test_collection(tester_collection)
     print()
@@ -380,8 +429,7 @@ def tester_test():
     tester_passed = tester_checker(
         tester,
         all_should_pass=False,
-        n_should_pass=should_pass_pre,
-        n_should_fail=should_fail_pre,
+        n_should=tester_should_have["pre"]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -392,8 +440,7 @@ def tester_test():
     tester_passed = tester_checker(
         tester,
         all_should_pass=False,
-        n_should_pass=should_pass_post,
-        n_should_fail=should_fail_post,
+        n_should=tester_should_have["post"]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
