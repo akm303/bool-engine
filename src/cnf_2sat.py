@@ -45,7 +45,7 @@ def edges_from_clauses(clauses_2sat):
         dprint(f"clause: {clause_str(clause)}")
         dprint(f" edge1: {edge_str(edge1)}")
         dprint(f" edge2: {edge_str(edge2)}")
-        dprint(bar40)
+    dprint(bar40)
 
     return edges
 
@@ -62,12 +62,12 @@ def is_satisfiable(
         n_str, negn_str = sfmt(n, negn, fmt=node_str)
         found_n_to_negn_path = has_path(n, negn, adj_graph)
         found_negn_to_n_path = has_path(negn, n, adj_graph)
-        dprint(f"checking for contradictory paths")
-        dprint(f"  from {n_str} -> {negn_str}")
+        dprint(f"checking for contradictory paths (@ {n_str})")
+        # dprint(f"  from {n_str} -> {negn_str}")
         dprint(f"  has_path({n_str},{negn_str})? {found_n_to_negn_path}")
         dprint(f"  has_path({negn_str},{n_str})? {found_negn_to_n_path}")
         if found_n_to_negn_path and found_negn_to_n_path:
-            print(f"  found bidirectional paths between [ {n_str} <=> {negn_str} ]")
+            print(f" ! found bidirectional paths between [ {n_str} <=> {negn_str} ]")
             contradictions.append((n, negn))
             if not get_all_contradictions:
                 return False, contradictions
@@ -88,21 +88,23 @@ def run(cnf_expr, run_i=-1):
     test_title = f"expression{expr_counter_str} ::"
     
     print(f'{test_title}  "{cnf_expr}"')
-    print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
+    print(f'(formatted) ie.  "{expression}"')
+    # print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
     print()
     print(f"nodes: {nodelist_str(nodes)}")
     print(f"edges: {edgelist_str(edges)}")
     print(f"graph (adjacency): {adjgraph_str(adj_graph,indent='  ')}")
 
-    dprint()
-    paths = {}
-    for node1 in adj_graph:
-        paths[node1] = {}
-        for node2 in adj_graph:
-            paths[node1][node2] = bool_num(has_path(node1, node2, adj_graph))
-        dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
+    # * do not remove, only comment
+    # dprint()
+    # paths = {}
+    # for node1 in adj_graph:
+    #     paths[node1] = {}
+    #     for node2 in adj_graph:
+    #         paths[node1][node2] = bool_num(has_path(node1, node2, adj_graph))
+    #     dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
 
-    dprint()
+    print()
     is_sat, contradiction = is_satisfiable(adj_graph, get_all_contradictions=True)
     print(f"is satisfiable? {is_sat}")
     if not is_sat:

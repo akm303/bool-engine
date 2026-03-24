@@ -81,7 +81,8 @@ class TestCase:
         return self.title
 
     def __repr__(self):
-        return f"\n  {self.title} : {self.input} -> {self.expected} ({self.validator.__name__})?"
+        return f"\n  {self.title} : {self.input} -> {self.expected}?"
+        # return f"\n  {self.title} : {self.input} -> {self.expected}? (by {self.validator.__name__}())"
 
 
 class TestRunner:
@@ -107,7 +108,12 @@ class TestRunner:
         return {test_case.title: result for test_case, result in self.results.items()}
 
     def all_passed(self):
-        return all(result == PASS for result in self.results.values())
+
+        return len(self.results) > 0 and all(
+            result == PASS
+            for test_case, result in self.results.items()
+            if test_case in self.test_cases
+        )
 
     def get_passed(self):
         pass_list = [
@@ -115,7 +121,7 @@ class TestRunner:
             for test_case, test_result in self.results.items()
             if test_result == PASS
         ]
-        dprint(f"passed: {pass_list}")
+        # dprint(f"TestRunner:get_passed:passed: {pass_list}")
         return pass_list
 
     def get_failed(self):
@@ -124,7 +130,7 @@ class TestRunner:
             for test_case, test_result in self.results.items()
             if test_result == FAIL
         ]
-        dprint(f"failed: {fail_list}")
+        # dprint(f"TestRunner:get_passed:failed: {fail_list}")
         return fail_list
 
     def __str__(self):
@@ -138,11 +144,11 @@ class TestRunner:
         rstring = (
             f"\nTesting {solver_name}():"
             + f"\ncases: {self.test_cases}"
+            # + f"\nall passed? {all_passed}"
             + f"\npassing: {passing_tests}"
             # + f"\npassing: {pformat(passing_tests,compact=True,indent=6)}"
             + f"\nfailing: {failing_tests}"
             # + f"\nfailing: {pformat(failing_tests,compact=True,indent=6)}"
-            # + f"\nall passed? {all_passed}"
             + "\n"
         )
 
@@ -228,31 +234,6 @@ cnf_ksat_collection = {
 }
 
 
-# cnf_ksat_tests = [
-#     # custom examples
-#     "(A)",  # 1. {'A':1}
-#     "(A')",  # 2. {'A':0}
-#     "(A)(A')",  # 3. None
-#     "(X+Y)",  # 4. {'X':1,'Y':*}
-#     "(X+Y')",  # 5. {'X':1,'Y':*}
-#     "(X'+Y)",  # 6. {'X':1,'Y':1}
-#     "(X'+Y')",  # 7. {'X':1,'Y':0}
-#     "(X+Y)(X'+Y)",  # 8. {'X':1,'Y':1}
-#     "(X+Y)(X'+Y')",  # 9. {'X':1,'Y':0}
-#     "(x_1' + x_2)(x_1' + x_3)",  # 10. {'x_1':1, 'x_2':1, 'x_3':1}
-#     "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)",  # 11. {'x_1':1, 'x_2':1, 'x_3':*, 'x_4':*}
-#     "(x_1' + x_2' + x_4' + x_5') (x_2' + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)",  # 12. {'x_1':1, 'x_2':1, 'x_3':*, 'x_4':*}
-#     # example form 2SAT on website
-#     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')",
-#     "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
-#     "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)",  # swapped x_1 & x_2
-#     "(x_a' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_a') (x_3' + x_a)",  # swapped x_1 & x_3
-#     # custom examples
-#     "(x_a' + x_a)",
-#     "(A + A)(A' + A')",
-# ]
-
-
 def setup_test(test_collection: dict):
     # unpack test elements
     solver = test_collection[KEY_SOLVER]
@@ -267,83 +248,158 @@ def setup_test(test_collection: dict):
     return tester
 
 
+def print_test_collection(test_collection):
+    print(f"test collection: {{")
+    print(f"  solver: {test_collection[KEY_SOLVER].__name__}")
+    print(f" checker: {test_collection[KEY_CHECKER].__name__}")
+    print(f"   cases: {test_collection[KEY_CASES]}")
+    print("}")
+
+
 def tester_test():
     N = 3
 
     def run_sum(a, b):
         return a + b
 
+    def tester_checker(
+        tester: TestRunner, all_should_pass: True, n_should_pass, n_should_fail
+    ):
+        all_pass = tester.all_passed()
+        n_passed = len(tester.get_passed())
+        n_failed = len(tester.get_failed())
+
+        if (all_pass and not all_should_pass) or (not all_pass and all_should_pass):
+            print(
+                f"Tester Failed (all_pass={all_pass} when expected_pass={all_should_pass})"
+            )
+            return False
+
+        if n_failed != n_should_fail:
+            print(f"Tester Failed ({n_failed} tests failed, expected {n_should_fail})")
+            return False
+        if n_passed != n_should_pass:
+            print(f"Tester Failed ({n_passed} tests passed, expected {n_should_pass})")
+            return False
+
+        return True
+
     print()
-    should_fail = 0
+
     tester_collection = {
         KEY_SOLVER: run_sum,
         KEY_CHECKER: exact_check,
         KEY_CASES: {(a, b): a + b for b in range(N) for a in range(N)},
     }
+
+    # test_should = {
+    #     # pass/fail : [n tests failed pre, n tests failed post];
+    #     'pass':[0,len(tester_collection[KEY_CASES])],
+    #     'fail':[0,0]
+    # }
+    
+    should_pass_pre = 0
+    should_fail_pre = 0
+    should_pass_post = len(tester_collection[KEY_CASES])
+    should_fail_post = 0
+
     print("Testing test script (base):")
-    print(f"test collection:\n{pformat(tester_collection,compact=True)}")
-    print()
+    print_test_collection(tester_collection)
+
     # Testing sequence
     tester = setup_test(tester_collection)
     print(f"Pre Test Run: {tester}")
+    tester_passed = tester_checker(
+        tester,
+        all_should_pass=False,
+        n_should_pass=should_pass_pre,
+        n_should_fail=should_fail_pre,
+    )
+    if not tester_passed:
+        print("TESTER TEST FAILED")
+        return
+
     tester.run()
     print(f"Post Test Run: {tester}")
 
-    all_pass = tester.all_passed()
-    n_failed = len(tester.get_failed())
-    if not all_pass:
-        print("Tester Failed (not all passed)")
-        return
-    if n_failed != should_fail:
-        print(f"Tester Failed ({n_failed} tests failed, expected {should_fail})")
+    tester_passed = tester_checker(
+        tester,
+        all_should_pass=True,
+        n_should_pass=should_pass_post,
+        n_should_fail=should_fail_post,
+    )
+    if not tester_passed:
+        print("TESTER TEST FAILED")
         return
 
     print()
     print()
-    should_fail += 1
     tester_collection[KEY_CASES][(0, 0)] = 1  # force test to fail
+    should_fail_post += 1
+    should_pass_post -= 1
     print("Testing test script (1 failure):")
-    print(f"test collection:\n{pformat(tester_collection,compact=True)}")
+    print_test_collection(tester_collection)
     print()
-    # Testing sequence
+
     tester = setup_test(tester_collection)
     print(f"Pre Test Run: {tester}")
+    tester_passed = tester_checker(
+        tester,
+        all_should_pass=False,
+        n_should_pass=should_pass_pre,
+        n_should_fail=should_fail_pre,
+    )
+    if not tester_passed:
+        print("TESTER TEST FAILED")
+        return
+
     tester.run()
     print(f"Post Test Run: {tester}")
 
-    all_pass = tester.all_passed()
-    n_failed = len(tester.get_failed())
-    if all_pass:
-        print("Tester Failed (all passed)")
-        return
-
-    if n_failed != should_fail:
-        print(f"Tester Failed ({n_failed} tests failed, expected {should_fail})")
+    tester_passed = tester_checker(
+        tester,
+        all_should_pass=False,
+        n_should_pass=should_pass_post,
+        n_should_fail=should_fail_post,
+    )
+    if not tester_passed:
+        print("TESTER TEST FAILED")
         return
 
     print()
     print()
-    should_fail += 1
-    tester_collection[KEY_CASES][(N, N)] = 0  # force test to fail second time
+    tester_collection[KEY_CASES][(N - 1, N - 1)] = 0  # force test to fail second time
+    should_fail_post += 1
+    should_pass_post -= 1
     print("Testing test script (2 failures):")
-    print(f"test collection:\n{pformat(tester_collection,compact=True)}")
+    print_test_collection(tester_collection)
     print()
     # Testing sequence
     tester = setup_test(tester_collection)
     print(f"Pre Test Run: {tester}")
+    tester_passed = tester_checker(
+        tester,
+        all_should_pass=False,
+        n_should_pass=should_pass_pre,
+        n_should_fail=should_fail_pre,
+    )
+    if not tester_passed:
+        print("TESTER TEST FAILED")
+        return
+
     tester.run()
     print(f"Post Test Run: {tester}")
-
-    all_pass = tester.all_passed()
-    n_failed = len(tester.get_failed())
-    if all_pass:
-        print("Tester Failed (all passed)")
+    tester_passed = tester_checker(
+        tester,
+        all_should_pass=False,
+        n_should_pass=should_pass_post,
+        n_should_fail=should_fail_post,
+    )
+    if not tester_passed:
+        print("TESTER TEST FAILED")
         return
-    if n_failed != should_fail:
-        print(f"Tester Failed ({n_failed} tests failed, expected {should_fail})")
-        return
-
     print("Tester Passes")
+    print()
 
 
 def run_sat_tests():

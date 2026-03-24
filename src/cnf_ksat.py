@@ -163,9 +163,8 @@ def run(cnf_expr: e_type, to_output = "both", run_i:int=-1):
 
     dprint()
     is_sat, assignment = is_satisfiable(variables, clauses)
-    is_sat_str = "is satisfiable" if is_sat is True else "isn't satisfiable"
     print()
-    print(f"expression{expr_counter_str}: {is_sat_str}")
+    print(f"is satisfiable? {is_sat}")
     print(f"solution: {assignment_str(assignment)}")
 
     print(bar40)

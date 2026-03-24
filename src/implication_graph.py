@@ -10,9 +10,10 @@ def build_adj_graph(nodes: list[node_type], edges: list[edge_type]) -> graph_typ
     """build implication graph with vertices x_i and x_i' for each i"""
     adjacency = {n: set() for n in nodes}
 
+    dprint("adding edges:")
     for edge in edges:
         dprint(
-            f"adding edge: {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}"
+            f" {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}"
         )
         u, v = edge
         adjacency[u].add(v)
