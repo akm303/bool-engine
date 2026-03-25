@@ -219,3 +219,5 @@ __marimo__/
 # my spaces
 archive
 testspace
+outputs
+.DS_Store

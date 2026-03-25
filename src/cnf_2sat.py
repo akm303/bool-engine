@@ -14,6 +14,9 @@ from implication_graph import *
 from common import *
 
 
+# test outputs to tests directory
+print = print_to_file(print,"tests/cnf_2sat.tex")
+
 # --------------------------------------------------- #
 # func alias
 a_str = assignment_str

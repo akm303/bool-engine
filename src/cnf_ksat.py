@@ -16,6 +16,10 @@ from typing import Tuple
 
 from common import *
 
+
+# test outputs to tests directory
+print = print_to_file(print,"tests/cnf_ksat.tex")
+
 # --------------------------------------------------- #
 # fill remaining assignment variables with wildcard symbol '*'
 # WITH_FILL = False

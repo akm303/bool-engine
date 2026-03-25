@@ -4,9 +4,63 @@ Docstring for src.common
 type definitions, constants, and functions common across project
 """
 
+import os
+import pathlib
 import re
 import argparse
 from typing import Callable, Iterable, Collection, Tuple
+
+
+# --------------------------------------------------- #
+# Printout Logs/Stdout
+TO_LOG = True
+OVERWRITE_FILES = True
+# TEST_DIRECTORY = "tests"
+# OUTPUT_DIRECTORY = "outputs"
+# BASE_TEST_FILENAME = "-test.tex"
+# BASE_DEBUG_FILENAME = "-debug.tex"
+
+
+OUTPUT_DIRECTORY = "outputs"
+
+
+def print_to_file(printer: Callable, output_file: str):
+    """
+    Writes output to stdout and to specified file in output directory
+    note: running files from root directory => output_files must be wrt root directory
+    """
+    # log_file = f"{OUTPUT_DIRECTORY}/log_file"
+    # debug_file = f"{OUTPUT_DIRECTORY}/debug_file"
+    # test_file = f"{OUTPUT_DIRECTORY}/test_file"
+
+    valid_suffix = [".tex", ".txt", ".md"]
+    if pathlib.Path(output_file).suffix not in valid_suffix:
+        output_file = pathlib.Path.with_suffix(".tex")
+    output_file = f"{OUTPUT_DIRECTORY}/{output_file}"
+
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    if OVERWRITE_FILES:
+        with open(output_file, "w") as f:
+            pass
+
+    if TO_LOG:
+
+        def wrapped_printer(*args, **kwargs):
+            printer(*args, **kwargs)  # print to terminal
+
+            with open(output_file, "a") as f:
+                fkwargs = dict(kwargs)  # print to file
+                fkwargs["file"] = f
+                printer(*args, **fkwargs)
+
+        return wrapped_printer
+    return printer
+
+
+# test outputs to tests directory
+print = print_to_file(print, "tests/common.tex")
+
 
 # --------------------------------------------------- #
 # debug helpers
@@ -22,12 +76,15 @@ def set_debug(to_debug: bool):
     DEBUG_PRINT = to_debug
 
 
-
+# @print_to_file
 def dprint(*args, **kwargs):
     """debug print: prints statements only if global DEBUG_PRINT constant set to true"""
     # args = ' >> debug:',*args
     if DEBUG_PRINT:
         print(*args, **kwargs)
+
+
+dprint = print_to_file(dprint, "debug/debug_outputs.tex")
 
 
 def sfmt(*varlist: list, fmt=str) -> list[str]:
@@ -42,8 +99,13 @@ def dfmt(*varlist: list, fmt=str) -> list:
 
 def parse_flags():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", action="store_true") # to print debug statements
-    parser.add_argument("-e", "--expression", ) # to run tests
+    parser.add_argument(
+        "-d", "--debug", action="store_true"
+    )  # to print debug statements
+    parser.add_argument(
+        "-e",
+        "--expression",
+    )  # to run tests
     return parser.parse_args()
 
 
@@ -236,7 +298,7 @@ def to_syntax(string: str, target_syntax: str):
     CANON_AND = " AND "
 
     # convert to a intermediate canonical form
-    string = re.sub(r"(\\lor|\|\||\||\+)", CANON_OR , string)
+    string = re.sub(r"(\\lor|\|\||\||\+)", CANON_OR, string)
     string = re.sub(r"(\\land|&&|&|\.)", CANON_AND, string)
 
     or_op = "+"
@@ -256,16 +318,16 @@ def to_syntax(string: str, target_syntax: str):
     return string
 
 
-
 def to_local(string: str) -> str:
-    return to_syntax(string,"local")
+    return to_syntax(string, "local")
+
 
 def to_LaTeX(string: str) -> str:
-    return to_syntax(string,"latex")
+    return to_syntax(string, "latex")
 
-def to_code(string:str,lang:str) -> str:
-    return to_syntax(string,lang)
 
+def to_code(string: str, lang: str) -> str:
+    return to_syntax(string, lang)
 
 
 # --------------------------------------------------- #
