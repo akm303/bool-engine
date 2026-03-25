@@ -158,80 +158,10 @@ class TestRunner:
 
 # ----------------------------------------- #
 # ----------------------------------------- #
-
+# Collection keys
 KEY_SOLVER = "solver"
 KEY_CHECKER = "checker"
 KEY_CASES = "cases"
-
-cnf_2sat_collection = {
-    KEY_SOLVER: run_2sat,
-    KEY_CHECKER: exact_check,
-    KEY_CASES: {
-        # custom examples
-        "(X+Y)": True,
-        "(X+Y')": True,
-        "(X'+Y)": True,
-        "(X'+Y')": True,
-        "(X+Y)(X'+Y)": True,
-        "(X+Y)(X'+Y')": True,
-        "(x_1' + x_2)(x_1' + x_3)": True,
-        # example from 2SAT on website
-        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
-        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
-        "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
-        "(x_3' + x_2) (x_2' + x_1) (x_1 + x_2) (x_1' + x_3') (x_1' + x_3)": False,  # swapped x_1 & x_3
-        # custom examples
-        "(x_a' + x_a)": True,
-        "(A + A)(A' + A')": False,
-        "(A + A)(A' + A')": True,  # should fail
-    },
-}
-
-cnf_ksat_collection = {
-    KEY_SOLVER: run_ksat,
-    KEY_CHECKER: exact_check,
-    KEY_CASES: {
-        # custom examples
-        "(A)": (True, {"A": 1}),
-        "(A')": (True, {"A": 0}),
-        "(A)(A')": (False, None),
-        "(X+Y)": (True, {"X": 1, "Y": "*"}),
-        "(X+Y')": (True, {"X": 1, "Y": "*"}),
-        "(X'+Y)": (True, {"X": 1, "Y": 1}),
-        "(X'+Y')": (True, {"X": 1, "Y": 0}),
-        "(X+Y)(X'+Y)": (True, {"X": 1, "Y": 1}),
-        "(X+Y)(X'+Y')": (True, {"X": 1, "Y": 0}),
-        "(x_1' + x_2)(x_1' + x_3)": (True, {"x_1": 1, "x_2": 1, "x_3": 1}),
-        "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)": (
-            True,
-            {
-                "x_1": 1,
-                "x_2": 1,
-                "x_3": "*",
-                "x_4": "*",
-            },
-        ),
-        "(x_1' + x_2' + x_4' + x_5') (x_2' + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)": (
-            True,
-            {
-                "x_1": 1,
-                "x_2": 1,
-                "x_3": 1,
-                "x_4": 1,
-                "x_5": 0,
-                "x_6": "*",
-            },
-        ),
-        # # example form 2SAT on website
-        # "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')":
-        # "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
-        # "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)":
-        # "(x_a' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_a') (x_3' + x_a)":
-        # # custom examples
-        # "(x_a' + x_a)":
-        # "(A + A)(A' + A')":
-    },
-}
 
 
 def setup_test(test_collection: dict):
@@ -257,18 +187,23 @@ def print_test_collection(test_collection):
 
 
 def tester_test():
+    # todo: pretty sure this can be generalized to run as a solver in a recursive test to test the tester
     N = 3
+    PRE = "pre"
+    POST = "post"
 
     def run_sum(a, b):
         return a + b
 
     def tester_checker(tester: TestRunner, all_should_pass: True, n_should: dict):
+        """verify test running operations work correctly"""
+
         all_pass = tester.all_passed()
         n_passed = len(tester.get_passed())
         n_failed = len(tester.get_failed())
 
-        n_should_pass = n_should["pass"]
-        n_should_fail = n_should["fail"]
+        n_should_pass = n_should[PASS]
+        n_should_fail = n_should[FAIL]
 
         if (all_pass and not all_should_pass) or (not all_pass and all_should_pass):
             print(
@@ -296,8 +231,8 @@ def tester_test():
     # # v3
     # number of tests that should pass/fail in the tester pre/post tester.run()
     tester_should_have = {
-        "pre": {"pass": 0, "fail": 0},
-        "post": {"pass": len(tester_collection[KEY_CASES]), "fail": 0},
+        PRE: {PASS: 0, FAIL: 0},
+        POST: {PASS: len(tester_collection[KEY_CASES]), FAIL: 0},
     }
 
     print("Testing test script (base):")
@@ -307,7 +242,7 @@ def tester_test():
     tester = setup_test(tester_collection)
     print(f"Pre Test Run: {tester}")
     tester_passed = tester_checker(
-        tester, all_should_pass=False, n_should=tester_should_have["pre"]
+        tester, all_should_pass=False, n_should=tester_should_have[PRE]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -317,7 +252,7 @@ def tester_test():
     print(f"Post Test Run: {tester}")
 
     tester_passed = tester_checker(
-        tester, all_should_pass=True, n_should=tester_should_have["post"]
+        tester, all_should_pass=True, n_should=tester_should_have[POST]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -327,8 +262,8 @@ def tester_test():
     print()
     tester_collection[KEY_CASES][(0, 0)] = 1  # force test to fail
 
-    tester_should_have["post"]["fail"] += 1
-    tester_should_have["post"]["pass"] -= 1
+    tester_should_have[POST][FAIL] += 1
+    tester_should_have[POST][PASS] -= 1
     print("Testing test script (1 failure):")
     print_test_collection(tester_collection)
     print()
@@ -336,7 +271,7 @@ def tester_test():
     tester = setup_test(tester_collection)
     print(f"Pre Test Run: {tester}")
     tester_passed = tester_checker(
-        tester, all_should_pass=False, n_should=tester_should_have["pre"]
+        tester, all_should_pass=False, n_should=tester_should_have[PRE]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -346,7 +281,7 @@ def tester_test():
     print(f"Post Test Run: {tester}")
 
     tester_passed = tester_checker(
-        tester, all_should_pass=False, n_should=tester_should_have["post"]
+        tester, all_should_pass=False, n_should=tester_should_have[POST]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -355,8 +290,8 @@ def tester_test():
     print()
     print()
     tester_collection[KEY_CASES][(N - 1, N - 1)] = 0  # force test to fail second time
-    tester_should_have["post"]["fail"] += 1
-    tester_should_have["post"]["pass"] -= 1
+    tester_should_have[POST][FAIL] += 1
+    tester_should_have[POST][PASS] -= 1
     print("Testing test script (2 failures):")
     print_test_collection(tester_collection)
     print()
@@ -364,7 +299,7 @@ def tester_test():
     tester = setup_test(tester_collection)
     print(f"Pre Test Run: {tester}")
     tester_passed = tester_checker(
-        tester, all_should_pass=False, n_should=tester_should_have["pre"]
+        tester, all_should_pass=False, n_should=tester_should_have[PRE]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -373,7 +308,7 @@ def tester_test():
     tester.run()
     print(f"Post Test Run: {tester}")
     tester_passed = tester_checker(
-        tester, all_should_pass=False, n_should=tester_should_have["post"]
+        tester, all_should_pass=False, n_should=tester_should_have[POST]
     )
     if not tester_passed:
         print("TESTER TEST FAILED")
@@ -383,6 +318,77 @@ def tester_test():
 
 
 def run_sat_tests():
+    """define SAT test collections and run tests"""
+    cnf_2sat_collection = {
+        KEY_SOLVER: run_2sat,
+        KEY_CHECKER: exact_check,
+        KEY_CASES: {
+            # custom examples
+            "(X+Y)": True,
+            "(X+Y')": True,
+            "(X'+Y)": True,
+            "(X'+Y')": True,
+            "(X+Y)(X'+Y)": True,
+            "(X+Y)(X'+Y')": True,
+            "(x_1' + x_2)(x_1' + x_3)": True,
+            # example from 2SAT on website
+            "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
+            "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
+            "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
+            "(x_3' + x_2) (x_2' + x_1) (x_1 + x_2) (x_1' + x_3') (x_1' + x_3)": False,  # swapped x_1 & x_3
+            # custom examples
+            "(x_a' + x_a)": True,
+            "(A + A)(A' + A')": False,
+            "(A + A)(A' + A')": True,  # should fail
+        },
+    }
+
+    cnf_ksat_collection = {
+        KEY_SOLVER: run_ksat,
+        KEY_CHECKER: exact_check,
+        KEY_CASES: {
+            # custom examples
+            "(A)": (True, {"A": 1}),
+            "(A')": (True, {"A": 0}),
+            "(A)(A')": (False, None),
+            "(X+Y)": (True, {"X": 1, "Y": "*"}),
+            "(X+Y')": (True, {"X": 1, "Y": "*"}),
+            "(X'+Y)": (True, {"X": 1, "Y": 1}),
+            "(X'+Y')": (True, {"X": 1, "Y": 0}),
+            "(X+Y)(X'+Y)": (True, {"X": 1, "Y": 1}),
+            "(X+Y)(X'+Y')": (True, {"X": 1, "Y": 0}),
+            "(x_1' + x_2)(x_1' + x_3)": (True, {"x_1": 1, "x_2": 1, "x_3": 1}),
+            "(x_1' + x_2 + x_4') (x_2 + x_3' + x_4) (x_1 + x_2' + x_3) (x_1 + x_2 + x_3)": (
+                True,
+                {
+                    "x_1": 1,
+                    "x_2": 1,
+                    "x_3": "*",
+                    "x_4": "*",
+                },
+            ),
+            "(x_1' + x_2' + x_4' + x_5') (x_2' + x_3 + x_5' + x_6') (x_1 + x_2 + x_3 + x_5)": (
+                True,
+                {
+                    "x_1": 1,
+                    "x_2": 1,
+                    "x_3": 1,
+                    "x_4": 1,
+                    "x_5": 0,
+                    "x_6": "*",
+                },
+            ),
+            # # example form 2SAT on website
+            # "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')":
+            # "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)",
+            # "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)":
+            # "(x_a' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_a') (x_3' + x_a)":
+            # # custom examples
+            # "(x_a' + x_a)":
+            # "(A + A)(A' + A')":
+        },
+    }
+
     sat_tests = [cnf_2sat_collection, cnf_ksat_collection]
     for sat_test_collection in sat_tests:
         tester = setup_test(sat_test_collection)
@@ -402,23 +408,22 @@ def run_sat_tests():
         print()
 
 
-def run_all_tests():
-    util_tests = [tester_test, run_sat_tests]
-
-    for test in util_tests:
-        print(bar40)
-        print(bar40)
+def run_multiple_tests(test_collections):
+    for test in test_collections:
         print(f"running: {test.__name__}()")
+        print(bar40)
         test()
+        print(bar40)
         print()
         print(f"completed: {test.__name__}()")
         print(bar40)
         print(bar40)
-        print()
         print()
 
 
 if __name__ == "__main__":
     args = parse_flags()
     set_debug(args.debug)
-    run_all_tests()
+
+    util_tests = [tester_test, run_sat_tests]
+    run_multiple_tests(util_tests)
