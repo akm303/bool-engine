@@ -53,11 +53,11 @@ def edges_from_clauses(clauses_2sat):
 # --------------------------------------------------- #
 # SAT check
 def is_satisfiable(
-    adj_graph: graph_type, get_all_contradictions: bool = False
+    variables: list[v_type], adj_graph: graph_type, get_all_contradictions: bool = False
 ) -> Tuple[bool, list]:
     """returns whether or not an expression is satisfiable based on an implication graph"""
     contradictions = []
-    for n in adj_graph:  # for each node n
+    for n in variables:  # for each node n
         negn = neg(n)
         n_str, negn_str = sfmt(n, negn, fmt=node_str)
         found_n_to_negn_path = has_path(n, negn, adj_graph)
@@ -84,9 +84,9 @@ def run(cnf_expr, run_i=-1):
     adj_graph = build_adj_graph(nodes, edges)
 
     print(bar40)
-    expr_counter_str = f' {run_i+1}' if run_i > -1 else ' '
+    expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
     test_title = f"expression{expr_counter_str} ::"
-    
+
     print(f'{test_title}   "{cnf_expr}"')
     print(f'(formatted) ie.  "{expression}"')
     # print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
@@ -105,7 +105,9 @@ def run(cnf_expr, run_i=-1):
     #     dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
 
     print()
-    is_sat, contradiction = is_satisfiable(adj_graph, get_all_contradictions=True)
+    is_sat, contradiction = is_satisfiable(
+        variables, adj_graph, get_all_contradictions=True
+    )
     print(f"is satisfiable? {is_sat}")
     if not is_sat:
         print(f"evidence: paths exist between {contradiction}")
@@ -137,7 +139,7 @@ def tests():
     test_i = 0
     for cnf_expr, expected in cnf_test_expressions.items():
         test_i += 1
-        is_sat = run(cnf_expr,test_i)
+        is_sat = run(cnf_expr, test_i)
         test_passed = "Pass" if is_sat == expected else "Fail"
         print(f"test {test_i}: {test_passed}")
 
