@@ -154,9 +154,10 @@ def backtrack(
 # --------------------------------------------------- #
 def run(cnf_expr: e_type, to_output = "both", run_i:int=-1):
     print(bar40)
+    print("k-SAT Solver")
     expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
     expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
-    print(f'expression{expr_counter_str} :: "{expression}=1"')
+    print(f'expression{expr_counter_str} :: "{expression}"')
     print(f"     clauses = {clauses_str(clauses)}")
     print(f"    literals = {variables_str(literals)}")
     print(f"   variables = {variables_str(variables)}")

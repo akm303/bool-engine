@@ -27,9 +27,9 @@ def passes(result: bool) -> str:
     return PASS if result else FAIL
 
 
-def exact_check(input: Any, expected: Any, actual: Any) -> bool:
+def check_exact(input: Any, expected: Any, actual: Any) -> bool:
     """validator: check if actual result is expected result"""
-    MAX_STR_LEN = 120
+    MAX_STR_LEN = 100
     case_passed = expected == actual
     input_str = f'"{input}"'
     result_str = "Pass" if case_passed else "Fail"
@@ -48,7 +48,7 @@ def exact_check(input: Any, expected: Any, actual: Any) -> bool:
     return case_passed
 
 
-def list_check(input: Any, potential: Collection, actual: Any) -> bool:
+def check_from_list(input: Any, potential: Collection, actual: Any) -> bool:
     """validator: check if actual result in list of potential expected results"""
     case_passed = actual in potential
     input_str = f'"{input}"'
@@ -142,6 +142,7 @@ class TestRunner:
             test_case: self.run_case(test_case, i)
             for i, test_case in enumerate(self.test_cases)
         }
+        return self.all_passed()
 
     def get_results(self) -> dict[str, str]:
         """get results of test as mapping of {case : pass|fail}"""
@@ -288,7 +289,7 @@ def tester_test() -> bool:
     # define base test collection
     tester_collection = {
         KEY_FUNC: run_sum,
-        KEY_CHECKER: exact_check,
+        KEY_CHECKER: check_exact,
         KEY_CASES: {(a, b): a + b for b in range(N) for a in range(N)},
     }
 
@@ -382,8 +383,8 @@ def tester_test() -> bool:
         all_pass = False
         print(bar40)
         print()
-
-    return "Tester Passes"
+    print("Tester Passes")
+    return True
 
 
 # ----------------------------------------- #
@@ -391,14 +392,14 @@ def tester_test() -> bool:
 # util tests
 
 
-def check_fmt_case(original, expected, actual):
-    case_passed = expected == actual
-    original = f'"{original}"'
-    print(
-        f'  case {original:10}: expect("{expected}") == actual("{actual}")? '
-        f"{'Pass' if case_passed else 'Fail'}"
-    )
-    return case_passed
+# def check_fmt_case(original, expected, actual):
+#     case_passed = expected == actual
+#     original = f'"{original}"'
+#     print(
+#         f'  case {original:10}: expect("{expected}") == actual("{actual}")? '
+#         f"{'Pass' if case_passed else 'Fail'}"
+#     )
+#     return case_passed
 
 
 # - syntax formatting to local
@@ -422,7 +423,7 @@ def test_syntax():
         total_results = []
         for test_case, test_expected in local_syntax_tests.items():
             test_actual = to_local(test_case)
-            case_passed = check_fmt_case(test_case, test_expected, test_actual)
+            case_passed = check_exact(test_case, test_expected, test_actual)
             total_results.append(case_passed)
         return total_results
 
@@ -472,16 +473,14 @@ def test_syntax():
                         test_expected = test_expected.replace("&", "&" * (i + 1))
                         test_expected = test_expected.replace("|", "|" * (i + 1))
                         test_actual = test_funcs[test_lang](test_case, lang)
-                        case_passed = check_fmt_case(
-                            test_case, test_expected, test_actual
-                        )
+                        case_passed = check_exact(test_case, test_expected, test_actual)
                         total_results.append(case_passed)
                         # total_results.append((test_case,test_expected,test_actual,case_passed))
             else:
                 print(f"testing for conversion to {test_lang}")
                 for test_case, test_expected in test_cases.items():
                     test_actual = test_funcs[test_lang](test_case)
-                    case_passed = check_fmt_case(test_case, test_expected, test_actual)
+                    case_passed = check_exact(test_case, test_expected, test_actual)
                     total_results.append(case_passed)
         return total_results
 
@@ -492,7 +491,7 @@ def test_syntax():
 
     final_result = all(r == True for r in total_results)
     print(f"\nAll test cases passed? {final_result}")
-    return total_results
+    return final_result
 
 
 # ----------------------------------------- #
@@ -503,7 +502,7 @@ def test_syntax():
 cnf_2sat_collection = {
     KEY_LABEL: "2SAT Solver",
     KEY_FUNC: run_2sat,
-    KEY_CHECKER: exact_check,
+    KEY_CHECKER: check_exact,
     KEY_CASES: {
         # custom examples
         "(X+Y)": True,
@@ -528,7 +527,7 @@ cnf_2sat_collection = {
 cnf_ksat_collection = {
     KEY_LABEL: "kSAT Solver",
     KEY_FUNC: run_ksat,
-    KEY_CHECKER: exact_check,
+    KEY_CHECKER: check_exact,
     KEY_CASES: {
         # custom examples
         "(A)": (True, {"A": 1}),
@@ -574,32 +573,14 @@ cnf_ksat_collection = {
 sat_tests = [cnf_2sat_collection, cnf_ksat_collection]
 
 
-def run_test(test):
-    test_title = "Test: ???"
-    test_hook = None
-    all_passed_hook = None
-
-    if isinstance(test, dict):
-        tester = setup_test(test)
-
-        test_title = tester.label
-        test_hook = tester.run_all
-        all_passed_hook = tester.all_passed
-
-    # elif isinstance(test,):
-    else:  # is function
-        test_title = f"`{test.__name__}()`"
-        test_hook = test
-
+def run_test(test_hook, all_passed_hook=None, test_title="Test: ???"):
     print(f"## running: {test_title}")
-
     print(bar40)
     print("```tex")
 
     results = test_hook()
 
     output_msg = "\n >>> "
-    # output_msg = "\n" + bar40 + "\n"
     if all_passed_hook:
         all_passed = all_passed_hook()
         output_msg += (
@@ -614,14 +595,14 @@ def run_test(test):
     print()
     print(bar40)
     print(f"{test_title} output: {output_msg}")
+    print("```")
     print()
 
-    print("```")
     print(bar40)
     print(f"## completed: {test_title}")
     print()
     print()
-
+    return results
 
 
 if __name__ == "__main__":
@@ -631,6 +612,32 @@ if __name__ == "__main__":
     # array of test functions (callable) or collections (dict) to be ran
     # if function, runs test directly
     # if collection, sets up and runs test
-    all_tests = [tester_test] + sat_tests
-    for test in all_tests:
-        run_test(test)
+
+    all_tests = [tester_test, test_syntax] + sat_tests
+
+    results = {}
+    for i, test in enumerate(all_tests):
+
+        test_hook = None
+        all_passed_hook = None
+
+        if isinstance(test, dict):
+            tester = setup_test(test)
+
+            test_title = tester.label
+            test_hook = tester.run_all
+            all_passed_hook = tester.all_passed
+
+        else:  # is function
+            test_title = f"`{test.__name__}()`"
+            test_hook = test
+
+        result = run_test(test_hook, all_passed_hook, test_title)
+        results[test_title] = result
+
+    if all(r == True for r in results.values()):
+        print("All tests passed")
+    else:
+        print("some tests failed")
+        failed_tests = [f"{test_title}: {test_result}" for test_title,test_result in results.items() if test_result != True]
+        print(f"{failed_tests}")
