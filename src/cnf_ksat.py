@@ -18,15 +18,16 @@ from common import *
 
 
 # test outputs to tests directory
-print = print_to_file(print,"tests/cnf_ksat.tex")
+# print = print_to_file(print,"stdout/cnf_ksat.tex")
+# dprint = print_to_file(dprint, "debug/cnf_ksat.tex")
 
 # --------------------------------------------------- #
 # fill remaining assignment variables with wildcard symbol '*'
 # WITH_FILL = False
 WITH_FILL = True
 
-STDOUT_TYPE = 0  # default
-# STDOUT_TYPE = 1 #concise
+# STDOUT_TYPE = 0  # default
+# # STDOUT_TYPE = 1 #concise
 
 
 def parse_cnf_expression(
@@ -86,7 +87,12 @@ def eval_clause(
         bvar = base_variable(literal)
         bval = assignment.get(bvar, None)
         clause_values.append(bval if bvar == literal else inverse(bval))
-    dprint(f"{indent}? eval clause {clause_str(clause)} => {clause_values}")
+
+    if COMPACT:
+        dprint(f"{indent} eval clause: {clause_str(clause)}")
+    else:
+        dprint(f"{indent}? eval clause {clause_str(clause)} => {clause_values}")
+    
     return clause_values
 
 
@@ -109,10 +115,11 @@ def backtrack(
 ) -> a_type[v_type, 0 | 1]:
     indent = " " * i_space
 
-    if STDOUT_TYPE == 1:
-        dprint(f"{indent}>> backtrack (A={assignment}, V={variables}, C={clauses})")
+    # if STDOUT_TYPE == 1:
+    if COMPACT:
+        dprint(f"{indent}>> recurse (A={assignment}, V={variables}, C={clauses})")
     else:
-        dprint(f"{indent}>> backtrack ::")
+        dprint(f"{indent}>> recurse ::")
         dprint(f"{indent} >           :A = {assignment_str(assignment)}")
         dprint(f"{indent} >           :V = {variables_str(variables)}")
         dprint(f"{indent} >           :C = {clauses_str(clauses)}")
@@ -128,10 +135,16 @@ def backtrack(
         if WITH_FILL and unassigned_vars:
             for var in unassigned_vars:
                 assignment[var] = "*"
-        dprint(f"{indent}solution found! -> A={assignment_str(assignment)}")
+        if COMPACT:
+            dprint(f"{indent}solution: A={assignment_str(assignment)}")
+        else:
+            dprint(f"{indent}solution found! -> A={assignment_str(assignment)}")
         return assignment
 
-    dprint(f"{indent}unassigned: U={unassigned_vars}", end=" :: ")
+    if COMPACT:
+        dprint(f"{indent} U={unassigned_vars}")
+    else:
+        dprint(f"{indent}unassigned: U={unassigned_vars}", end=" :: ")
     if unassigned_vars:
         current_var = unassigned_vars.pop(0)
         dprint(f'-> var="{current_var}"')
@@ -141,7 +154,8 @@ def backtrack(
         while assignment[current_var] >= 0:
             result = backtrack(assignment, variables, clauses, i_space + 2)
             if result is not None:
-                dprint(f"{indent}<<")
+                if COMPACT:
+                    dprint(f"{indent}<<")
                 return result
             assignment[current_var] -= 1
 

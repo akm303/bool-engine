@@ -60,7 +60,8 @@ from common import *
 
 
 # test outputs to tests directory
-print = print_to_file(print,"tests/cnf_2sat.tex")
+# print = print_to_file(print,"stdout/cnf_2sat.tex")
+# dprint = print_to_file(dprint, "debug/cnf_2sat.tex")
 
 # --------------------------------------------------- #
 # func alias
@@ -162,6 +163,9 @@ def run(cnf_expr, run_i=-1):
     print(f"is satisfiable? {is_sat}")
     if not is_sat:
         print(f"evidence: paths exist between {contradiction}")
+    
+    print(bar40)
+    print()
     return is_sat
 
 

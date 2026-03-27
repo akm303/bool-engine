@@ -22,6 +22,10 @@ PASS = "Pass"
 FAIL = "Fail"
 
 
+# print = print_to_file(dprint, "tests/tester.tex")
+# dprint = print_to_file(dprint, "debug/tester.tex")
+
+
 def passes(result: bool) -> str:
     """returns string based on whether test passed or failed"""
     return PASS if result else FAIL
@@ -31,13 +35,15 @@ def check_exact(input: Any, expected: Any, actual: Any) -> bool:
     """validator: check if actual result is expected result"""
     MAX_STR_LEN = 100
     case_passed = expected == actual
-    input_str = f'"{input}"'
-    result_str = "Pass" if case_passed else "Fail"
+    result_str = passes(case_passed)
 
-    outstr = (
-        f'  check {input_str:10}: expect("{expected}") == actual("{actual}")? '
-        f"{result_str}"
-    )
+    input_str = f'"{input}"'
+    outstr = f'  {input_str} => {actual}: {result_str}'
+    if not COMPACT:
+        outstr = (
+            f'  from {input_str:10} => expect("{expected}") ?? actual("{actual}")  '
+            f"{result_str}"
+        )
     if len(outstr) > MAX_STR_LEN:
         outstr = (
             f"checking: input={input_str} => {result_str}"
@@ -117,6 +123,8 @@ class TestCase:
         return self.title
 
     def __repr__(self):
+        if COMPACT:
+            return self.title
         return f"\n  {self.title} : {self.input} -> {self.expected}?"
         # return f"\n  {self.title} : {self.input} -> {self.expected}? (by {self.validator.__name__}())"
 
@@ -138,6 +146,7 @@ class TestRunner:
 
     def run_all(self):
         """run all test cases"""
+        print(f"Running {self.label}")
         self.results = {
             test_case: self.run_case(test_case, i)
             for i, test_case in enumerate(self.test_cases)
@@ -203,6 +212,7 @@ class TestRunner:
 # Collection keys
 KEY_LABEL = "label"
 KEY_FUNC = "function"
+KEY_VARIANTS = "variants"
 KEY_CHECKER = "checker"
 KEY_CASES = "cases"
 
@@ -254,7 +264,7 @@ def tester_test() -> bool:
         """verify expected state of tester object during test"""
         # aliasing & formatting
         all_should = all_should_pass  # alias for code formatter (black fmt)
-        title = f" ({title.title()} Tester) " if title else title
+        title = f" ({title.title()} Check) " if title else title
 
         all_pass = tester.all_passed()
         if (all_pass and not all_should) or (not all_pass and all_should):
@@ -336,6 +346,7 @@ def tester_test() -> bool:
     all_pass = True
     i = 0
     for case, update in test_updates.items():
+        i += 1
         dprint(f"case: {case} | update: {update}")
         if case:
             new_result, expect_delta = update
@@ -403,33 +414,34 @@ def tester_test() -> bool:
 
 
 # - syntax formatting to local
-def test_syntax():
-    def to_local_test():
-        local_syntax_tests = {
-            # and-based cases
-            r"a&a": "a.a",
-            r"a&&b": "a.b",
-            r"a.c": "a.c",
-            r"a\land d": "a.d",
-            r"a\lande": "a.e",
-            # or-based cases
-            r"a|a": "a+a",
-            r"a||b": "a+b",
-            r"a+c": "a+c",
-            r"a\lor d": "a+d",
-            r"a\lore": "a+e",
-        }
+syntax_to_local_test_collection = {
+    KEY_LABEL: "Syntax [To Local]",
+    KEY_FUNC: to_local,
+    KEY_CHECKER: check_exact,
+    KEY_CASES: {
+        # and-based cases
+        r"a&a": "a.a",
+        r"a&&b": "a.b",
+        r"a.c": "a.c",
+        r"a\land d": "a.d",
+        r"a\lande": "a.e",
+        # or-based cases
+        r"a|a": "a+a",
+        r"a||b": "a+b",
+        r"a+c": "a+c",
+        r"a\lor d": "a+d",
+        r"a\lore": "a+e",
+    },
+}
 
-        total_results = []
-        for test_case, test_expected in local_syntax_tests.items():
-            test_actual = to_local(test_case)
-            case_passed = check_exact(test_case, test_expected, test_actual)
-            total_results.append(case_passed)
-        return total_results
 
-    def from_local_test():
-        syntax_tests = {
-            "latex": {
+def syntax_from_local_tests():
+
+    syntax_tests = {
+        "latex": {
+            KEY_FUNC: to_LaTeX,
+            KEY_VARIANTS: [""],
+            KEY_CASES: {
                 # and-based cases
                 r"a&a": r"a\land a",
                 r"a&&b": r"a\land b",
@@ -443,7 +455,11 @@ def test_syntax():
                 r"a\lor d": r"a\lor d",
                 r"a\lore": r"a\lor e",
             },
-            "code": {
+        },
+        "code": {
+            KEY_FUNC: to_code,
+            KEY_VARIANTS: ["c", "py"],
+            KEY_CASES: {
                 # and-based cases
                 r"a&a": "a&a",
                 r"a&&b": "a&b",
@@ -457,41 +473,159 @@ def test_syntax():
                 r"a\lor d": "a|d",
                 r"a\lore": "a|e",
             },
-        }
+        },
+    }
 
-        test_funcs = {
-            "latex": to_LaTeX,
-            "code": to_code,
-        }
+    test_collections = []
+    for test_lang, test_collection in syntax_tests.items():
+        updated_test_collection = None
+        lang_variants = test_collection.get(KEY_VARIANTS, None)
+        if lang_variants:
+            for variant in lang_variants:
+                updated_test_collection = {
+                    KEY_LABEL: f"Syntax [to {test_lang} :: {variant}]",
+                    KEY_FUNC: test_collection[KEY_FUNC],
+                    KEY_CHECKER: check_exact,
+                    KEY_CASES: {
+                        (test_input, variant): test_expected
+                        for test_input, test_expected in test_collection[
+                            KEY_CASES
+                        ].items()
+                    },
+                }
+        else:
+            updated_test_collection = (
+                {
+                    KEY_LABEL: f"Syntax [to {test_lang}]",
+                    KEY_FUNC: test_collection[KEY_FUNC],
+                    KEY_CHECKER: check_exact,
+                    KEY_CASES: test_collection[KEY_CASES],
+                },
+            )
 
-        total_results = []
-        for test_lang, test_cases in syntax_tests.items():
-            if test_lang == "code":
-                for i, lang in enumerate(["py", "c"]):
-                    print(f"testing for conversion to {test_lang}::{lang}")
-                    for test_case, test_expected in test_cases.items():
-                        test_expected = test_expected.replace("&", "&" * (i + 1))
-                        test_expected = test_expected.replace("|", "|" * (i + 1))
-                        test_actual = test_funcs[test_lang](test_case, lang)
-                        case_passed = check_exact(test_case, test_expected, test_actual)
-                        total_results.append(case_passed)
-                        # total_results.append((test_case,test_expected,test_actual,case_passed))
-            else:
-                print(f"testing for conversion to {test_lang}")
-                for test_case, test_expected in test_cases.items():
-                    test_actual = test_funcs[test_lang](test_case)
-                    case_passed = check_exact(test_case, test_expected, test_actual)
-                    total_results.append(case_passed)
-        return total_results
+            test_collections.append(updated_test_collection)
+            print("syntax test collection:")
+            print_test_collection(test_collections[-1])
+    return test_collections
 
-    print("Running Tests:")
-    total_results = []
-    total_results += to_local_test()
-    total_results += from_local_test()
 
-    final_result = all(r == True for r in total_results)
-    print(f"\nAll test cases passed? {final_result}")
-    return final_result
+syntax_tests = [syntax_to_local_test_collection] + syntax_from_local_tests()
+
+# total_results = []
+# for test_lang, test_cases in syntax_tests.items():
+#     if test_lang == "code":
+#         for i, lang in enumerate(["py", "c"]):
+#             print(f"testing for conversion to {test_lang}::{lang}")
+#             for test_case, test_expected in test_cases.items():
+#                 test_expected = test_expected.replace("&", "&" * (i + 1))
+#                 test_expected = test_expected.replace("|", "|" * (i + 1))
+#                 test_actual = test_funcs[test_lang](test_case, lang)
+#                 case_passed = check_exact(test_case, test_expected, test_actual)
+#                 total_results.append(case_passed)
+#                 # total_results.append((test_case,test_expected,test_actual,case_passed))
+#     else:
+#         print(f"testing for conversion to {test_lang}")
+#         for test_case, test_expected in test_cases.items():
+#             test_actual = test_funcs[test_lang](test_case)
+#             case_passed = check_exact(test_case, test_expected, test_actual)
+#             total_results.append(case_passed)
+# return total_results
+
+
+# def test_syntax():
+# def to_local_test():
+#     test_collection = {
+#         KEY_LABEL: "Syntax [To Local]",
+#         KEY_FUNC: to_local,
+#         KEY_CHECKER: check_exact,
+#         KEY_CASES: {
+#             # and-based cases
+#             r"a&a": "a.a",
+#             r"a&&b": "a.b",
+#             r"a.c": "a.c",
+#             r"a\land d": "a.d",
+#             r"a\lande": "a.e",
+#             # or-based cases
+#             r"a|a": "a+a",
+#             r"a||b": "a+b",
+#             r"a+c": "a+c",
+#             r"a\lor d": "a+d",
+#             r"a\lore": "a+e",
+#         },
+#     }
+
+# total_results = []
+# for test_case, test_expected in local_syntax_tests.items():
+#     test_actual = to_local(test_case)
+#     case_passed = check_exact(test_case, test_expected, test_actual)
+#     total_results.append(case_passed)
+# return total_results
+
+# def from_local_test():
+#     syntax_tests = {
+#         "latex": {
+#             # and-based cases
+#             r"a&a": r"a\land a",
+#             r"a&&b": r"a\land b",
+#             r"a.c": r"a\land c",
+#             r"a\land d": r"a\land d",
+#             r"a\lande": r"a\land e",
+#             # or-based cases
+#             r"a|a": r"a\lor a",
+#             r"a||b": r"a\lor b",
+#             r"a+c": r"a\lor c",
+#             r"a\lor d": r"a\lor d",
+#             r"a\lore": r"a\lor e",
+#         },
+#         "code": {
+#             # and-based cases
+#             r"a&a": "a&a",
+#             r"a&&b": "a&b",
+#             r"a.c": "a&c",
+#             r"a\land d": "a&d",
+#             r"a\lande": "a&e",
+#             # or-based cases
+#             r"a|a": "a|a",
+#             r"a||b": "a|b",
+#             r"a+c": "a|c",
+#             r"a\lor d": "a|d",
+#             r"a\lore": "a|e",
+#         },
+#     }
+
+#     test_funcs = {
+#         "latex": to_LaTeX,
+#         "code": to_code,
+#     }
+
+#     total_results = []
+#     for test_lang, test_cases in syntax_tests.items():
+#         if test_lang == "code":
+#             for i, lang in enumerate(["py", "c"]):
+#                 print(f"testing for conversion to {test_lang}::{lang}")
+#                 for test_case, test_expected in test_cases.items():
+#                     test_expected = test_expected.replace("&", "&" * (i + 1))
+#                     test_expected = test_expected.replace("|", "|" * (i + 1))
+#                     test_actual = test_funcs[test_lang](test_case, lang)
+#                     case_passed = check_exact(test_case, test_expected, test_actual)
+#                     total_results.append(case_passed)
+#                     # total_results.append((test_case,test_expected,test_actual,case_passed))
+#         else:
+#             print(f"testing for conversion to {test_lang}")
+#             for test_case, test_expected in test_cases.items():
+#                 test_actual = test_funcs[test_lang](test_case)
+#                 case_passed = check_exact(test_case, test_expected, test_actual)
+#                 total_results.append(case_passed)
+#     return total_results
+
+# print("Running Tests:")
+# total_results = []
+# total_results += to_local_test()
+# total_results += from_local_test()
+
+# final_result = all(r == True for r in total_results)
+# print(f"\nAll test cases passed? {final_result}")
+# return final_result
 
 
 # ----------------------------------------- #
@@ -613,7 +747,7 @@ if __name__ == "__main__":
     # if function, runs test directly
     # if collection, sets up and runs test
 
-    all_tests = [tester_test, test_syntax] + sat_tests
+    all_tests = [tester_test] + syntax_tests + sat_tests
 
     results = {}
     for i, test in enumerate(all_tests):
@@ -639,5 +773,9 @@ if __name__ == "__main__":
         print("All tests passed")
     else:
         print("some tests failed")
-        failed_tests = [f"{test_title}: {test_result}" for test_title,test_result in results.items() if test_result != True]
+        failed_tests = [
+            f"{test_title}: {test_result}"
+            for test_title, test_result in results.items()
+            if test_result != True
+        ]
         print(f"{failed_tests}")

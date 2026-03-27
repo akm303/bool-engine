@@ -4,6 +4,10 @@ from pprint import pformat
 from common import *
 
 
+# print = print_to_file(dprint, "stdout/implication_graph.tex")
+# dprint = print_to_file(dprint, "debug/implication_graph.tex")
+
+
 # -------------------------------- #
 # Graph construction
 def build_adj_graph(nodes: list[node_type], edges: list[edge_type]) -> graph_type:
