@@ -550,6 +550,22 @@ def check_testcase(original, expected, actual):
 #     print(f"\nAll test cases passed? {final_result}")
 #     return total_results
 
+
+def step_through_generator(generator:Iterable, element_type:str = "element"):
+    userin = input()
+    not_all_components = True
+    outputs = []
+    while userin in ["\n", "", " "] and not_all_components:
+        try:
+            element = next(generator)
+            outputs.append(element)
+            print(f"<< {element_type}: {element} >>")
+            userin = input()
+        except:
+            not_all_components = False
+    return outputs
+
+
 init_output_dir()
 
 if __name__ == "__main__":

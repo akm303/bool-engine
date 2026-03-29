@@ -165,55 +165,57 @@ def gen_strong_components(adj_graph: graph_type) -> Iterator[list[node_type]]:
         i[0] += 1
         stack.append(v)
 
-        print()
-        print(f"  index: {index}")
-        print(f"  lowlink: {lowlink}")
-        print(f"  stack: {stack}")
+        dprint()
+        dprint(f"  index: {index}")
+        dprint(f"  lowlink: {lowlink}")
+        dprint(f"  stack: {stack}")
 
         # consider v's successors
         for w in adj_graph.get(v, []):
-            print(f"  adj_graph[{v}] -> w={w}")
-
-            # if not index.get(w, None):
+            dprint(f"  adj_graph[{v}] -> w={w}")
             if w not in index:
                 # not yet defined; recurse on it
-                print(f"    ({w} not yet defined; recurse on {w})")
+                dprint(f"    ({w} not yet defined; recurse on {w})")
                 yield from strongconnect(w, i, index, lowlink)
-                print(
-                    f"    (1) lowlink[{v}] <- min(lowlink[{v}]={lowlink[v]}, lowlink[{w}]={lowlink[w]})"
+                dprint(
+                    f"    (1) lowlink[{v}] "
+                    + f"<- min(lowlink[{v}],lowlink[{w}])"
+                    + f" = min({lowlink[v]}, {lowlink[w]})"
                 )
                 lowlink[v] = min(lowlink[v], lowlink[w])
 
             elif w in stack:
                 # w is in stack S, hence in current SCC
                 # otherwise (v,w) is an edge pointing to an SCC already found, must be ignored
-                print(f"    ({w} already in stack)")
-                print(
-                    f"    (2) lowlink[{v}] <- min(lowlink[{v}]={lowlink[v]}, index[{w}]={index[w]})"
+                dprint(f"    ({w} already in stack)")
+                dprint(
+                    f"    (2) lowlink[{v}] "
+                    + f"<- min(lowlink[{v}],lowlink[{w}])"
+                    + f" = min({lowlink[v]}, {lowlink[w]})"
                 )
                 lowlink[v] = min(lowlink[v], index[w])
 
         # if v is root node, pop the stack and gen an scc
-        print()
-        print(f":: stack: {stack}")
-        print(f":: index: {index}")
-        print(f":: lowlink: {lowlink}")
-        print(f":: v = {v}")
+        dprint()
+        dprint(f":: stack: {stack}")
+        dprint(f":: index: {index}")
+        dprint(f":: lowlink: {lowlink}")
+        dprint(f":: v = {v}")
 
         if lowlink[v] == index[v]:  # if head-node of scc, pop stack and store
             component = set()  # start new strongly connected component
             w = stack.pop()
             component.add(w)
 
-            print(f"  w={w} <- stack: {stack}")
-            print(f"  adding {w} to scc={component}")
+            dprint(f"  w={w} <- stack: {stack}")
+            dprint(f"  adding {w} to scc={component}")
 
             while w != v:  # and len(stack) > 0 :
                 w = stack.pop()
                 component.add(w)
-                print(f"  > adding {w} to scc={component}")
-            print()
-            print(f"  yielding scc={component}")
+                dprint(f"  > adding {w} to scc={component}")
+            dprint()
+            dprint(f"  yielding scc={component}")
             yield component
 
     i = [0]
@@ -222,51 +224,42 @@ def gen_strong_components(adj_graph: graph_type) -> Iterator[list[node_type]]:
     stack = list()
 
     for v in adj_graph:
-
-        # if not index.get(v, None):
         if v not in index:
-            # print()
             yield from strongconnect(v, i, index, lowlink)
 
-    # edges = []
-    # for u,neighbors in adj_graph.items():
-    # edges += [(u,v) for v in neighbors]
 
-    # def dfs(root: node_type, component: set, visited: set, graph: graph_type):
-    #     unvisited = list(set(graph.keys()) - visited)
-    #     print(f"U={unvisited}")
+def evaluation_2cnf(strong_components):
+    """process strong components of G(F) in reverse topological order as follows"""
+    scc_dict = {i: component for i, component in enumerate(strong_components)}
 
-    #     if len(unvisited) <= 0:
-    #         return
-
-    #     neighbors = graph[root]
-    #     for n in neighbors:
-    #         visited.add(n)
-    #         if n in unvisited:
-    #             component.add(n)
-    #     return
+    marked = {}
+    # 1. if S is marked, then go on to the next component
 
 
 # SAT check
 def is_satisfiable(
-    variables: list[v_type], adj_graph: graph_type, get_all_contradictions: bool = False
+    variables: list[v_type],
+    strong_components: list,
+    get_all_contradictions: bool = False,
 ) -> Tuple[bool, list]:
     """
     returns whether or not an expression is satisfiable based on an implication graph
     """
+    literal_scc = {}
+    for scc in strong_components:
+        for literal in scc:
+            literal_scc[literal] = scc
+    print(f"literal_scc: {literal_scc}")
+
     contradictions = []
     for n in variables:  # for each node n
         negn = neg(n)
         n_str, negn_str = sfmt(n, negn, fmt=node_str)
-        found_n_to_negn_path = has_path(n, negn, adj_graph)
-        found_negn_to_n_path = has_path(negn, n, adj_graph)
-        dprint(f"checking for contradictory paths (@ {n_str})")
-        # dprint(f"  from {n_str} -> {negn_str}")
-        dprint(f"  has_path({n_str},{negn_str})? {found_n_to_negn_path}")
-        dprint(f"  has_path({negn_str},{n_str})? {found_negn_to_n_path}")
-        if found_n_to_negn_path and found_negn_to_n_path:
-            print(f" ! found bidirectional paths between [ {n_str} <=> {negn_str} ]")
-            contradictions.append((n, negn))
+
+        if literal_scc[n] == literal_scc[negn]:
+            scc_str = nodes_str(literal_scc[n])
+            contradiction_str = f"Literals {n_str},{negn_str} \in SCC={scc_str}"
+            contradictions.append(contradiction_str)
             if not get_all_contradictions:
                 return False, contradictions
     return len(contradictions) <= 0, contradictions
@@ -296,33 +289,20 @@ def run(cnf_expr, run_i=-1):
     print(f"graph (adjacency): {adjgraph_str(adj_graph,indent='  ')}")
 
     # 2. generate strong components
-    print(pformat(adj_graph))
-    test_graph = {
-        'x_0': {'x_1'},
-        'x_1': {'x_2'},
-        'x_2': {'x_0'},  # cycle (SCC of size 3)
-        'x_3': {'x_4'},
-        'x_4': {'x_3'},  # cycle (SCC of size 2)
-        'x_5': set(),  # singleton
-    }
 
+    # test_graph = {
+    #     "x_0": {"x_1"},
+    #     "x_1": {"x_2"},
+    #     "x_2": {"x_0"},  # cycle (SCC of size 3)
+    #     "x_3": {"x_4"},
+    #     "x_4": {"x_3"},  # cycle (SCC of size 2)
+    #     "x_5": set(),  # singleton
+    # }
 
-    component_gen = gen_strong_components(adj_graph)
     # component_gen = gen_strong_components(test_graph)
+    component_gen = gen_strong_components(adj_graph)
     print(component_gen)
-
-    i = input()
-    not_all_components = True
-    all_components = []
-    while i in ["\n", "", " "] and not_all_components:
-        try:
-            component = next(component_gen)
-            all_components.append(component)
-            print(f"<< component: {component} >>")
-            i = input()
-        except:
-            not_all_components = False
-
+    all_components = step_through_generator(component_gen, "component")
     print(f"all strong components: {all_components}")
 
     # * do not remove, only comment
@@ -336,11 +316,13 @@ def run(cnf_expr, run_i=-1):
 
     print()
     is_sat, contradiction = is_satisfiable(
-        variables, adj_graph, get_all_contradictions=True
+        variables, all_components, get_all_contradictions=True
     )
     print(f"is satisfiable? {is_sat}")
     if not is_sat:
-        print(f"evidence: paths exist between {contradiction}")
+        print("evidence")
+        for c in contradiction:
+            print(f" < {c} >")
 
     print(bar40)
     print()
@@ -364,7 +346,7 @@ def tests():
         # "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
         # "(x_3' + x_2) (x_2' + x_1) (x_1 + x_2) (x_1' + x_3') (x_1' + x_3)": False,  # swapped x_1 & x_3
         # custom examples
-        # "(x_a' + x_a)": True,
+        "(x_a' + x_a)": True,
         "(A + A)(A' + A')": False,
     }
 
