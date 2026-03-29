@@ -1,5 +1,7 @@
 """
-algorithm as based on [Extreme Algorithms](https://www2.seas.gwu.edu/~simhaweb/champalg/sat/sat.html) page: algorithm due to Apvall, Plass, and Tarjan
+algorithm as based on [Extreme Algorithms](https://www2.seas.gwu.edu/~simhaweb/champalg/sat/sat.html) page
+based initially on algorithm by Apsvall, Plass, and Tarjan
+(true-to-source implementation of Apsvall, Plass, Tarjan in `cnf_apt.py`)
 
 - for any CNF expression C, you can construct corresponding 3CNF expression C' st:
     C is satisfiable iff C' is satisfiable

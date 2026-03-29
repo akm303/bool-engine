@@ -35,7 +35,7 @@ def get_reachable(start_node: node_type, adj_graph: graph_type):
         return reachable
 
     reachable = dfs(start_node, set(), adj_graph)
-    # print(f"  reachable from {start_node}: {reachable}")
+    print(f"  reachable from {node_str(start_node)}: {nodes_str(reachable)}")
     return reachable[1:]
 
 
