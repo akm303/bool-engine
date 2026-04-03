@@ -56,7 +56,7 @@ Consider the SAT problem; Thus, assume all quantifiers in F are existential:
 from typing import Tuple
 from pprint import pformat
 
-from cnf_ksat import parse_cnf_expression, is_2sat
+from cnf_ksat import setup_ksat, is_2sat
 from implication_graph import *
 from common import *
 
@@ -128,22 +128,21 @@ def is_satisfiable(
 
 
 def run(cnf_expr, run_i=-1):
-    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
-    assert is_2sat(clauses)
+    print(bar40)
+    print("2-SAT Solver (custom)")
+    expression, variables, literals, clauses = setup_ksat(cnf_expr,restrictions=[is_2sat])
 
     # each clause has 2 literals because 2sat
     nodes = nodes_from_variables(variables)
     edges = edges_from_clauses(clauses)
     adj_graph = build_adj_graph(nodes, edges)
 
-    expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
-    test_title = f"expression{expr_counter_str} ::"
+    # expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
+    # test_title = f"expression{expr_counter_str} ::"
 
-    print(bar40)
-    print("2-SAT Solver")
-    print(f'{test_title}   "{cnf_expr}"')
-    print(f'(formatted) ie.  "{expression}"')
-    # print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
+    # print(f'{test_title}   "{cnf_expr}"')
+    # print(f'(formatted) ie.  "{expression}"')
+    # # print(f'{" "*(len(test_title)-3)}ie.  "{expression}"')
     print()
     print(f"nodes: {nodelist_str(nodes)}")
     print(f"edges: {edgelist_str(edges)}")

@@ -56,16 +56,39 @@ def parse_cnf_expression(
     return expression, variables, literals, clauses
 
 
-def is_ksat(clauses: list[c_type], k: int) -> bool:
+# def is_ksat(clauses: list[c_type], k: int) -> bool:
+    # return all(len(clause) == k for clause in clauses)
+def is_ksat(clauses, k: int) -> bool:
     return all(len(clause) == k for clause in clauses)
 
-
-def is_2sat(clauses: list[c_type]) -> bool:
+# def is_2sat(clauses: list[c_type]) -> bool:
+    # return is_ksat(clauses, 2)
+def is_2sat(expression, variables, literals, clauses) -> bool:
     return is_ksat(clauses, 2)
 
-
-def is_3sat(clauses: list[c_type]) -> bool:
+# def is_3sat(clauses: list[c_type]) -> bool:
+    # return is_ksat(clauses, 2)
+def is_3sat(expression, variables, literals, clauses) -> bool:
     return is_ksat(clauses, 2)
+
+# --------------------------------------------------- #
+def setup_ksat(
+    cnf_expr: expression_type, restrictions: list[Callable] = [], run_i: int = -1
+) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]] | AssertionError:
+    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
+    for requirement in restrictions:
+        assert requirement(expression, variables, literals, clauses)
+        
+
+    expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
+    print(f'expression{expr_counter_str} :: "{expression}"')
+    print(f"     clauses = {clauses_str(clauses)}")
+    print(f"    literals = {variables_str(literals)}")
+    print(f"   variables = {variables_str(variables)}")
+
+    return expression, variables, literals, clauses
+
+    
 
 
 # --------------------------------------------------- #
@@ -92,7 +115,7 @@ def eval_clause(
         dprint(f"{indent} eval clause: {clause_str(clause)}")
     else:
         dprint(f"{indent}? eval clause {clause_str(clause)} => {clause_values}")
-    
+
     return clause_values
 
 
@@ -170,15 +193,16 @@ def backtrack(
 
 
 # --------------------------------------------------- #
-def run(cnf_expr: e_type, to_output = "both", run_i:int=-1):
+def run(cnf_expr: e_type, to_output="both", run_i: int = -1):
     print(bar40)
     print("k-SAT Solver")
-    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
-    expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
-    print(f'expression{expr_counter_str} :: "{expression}"')
-    print(f"     clauses = {clauses_str(clauses)}")
-    print(f"    literals = {variables_str(literals)}")
-    print(f"   variables = {variables_str(variables)}")
+    expression, variables, literals, clauses = setup_ksat(cnf_expr, restrictions=[])
+    # expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
+    # expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
+    # print(f'expression{expr_counter_str} :: "{expression}"')
+    # print(f"     clauses = {clauses_str(clauses)}")
+    # print(f"    literals = {variables_str(literals)}")
+    # print(f"   variables = {variables_str(variables)}")
 
     dprint()
     is_sat, assignment = is_satisfiable(variables, clauses)
@@ -194,8 +218,7 @@ def run(cnf_expr: e_type, to_output = "both", run_i:int=-1):
     elif to_output == "is_sat":
         return is_sat
     else:
-        return is_sat,assignment
-
+        return is_sat, assignment
 
 
 # --------------------------------------------------- #
@@ -227,7 +250,7 @@ def tests():
     ]
 
     for i, cnf_expr in enumerate(cnf_test_expressions):
-        result = run(cnf_expr, to_output = "both",run_i = i)
+        result = run(cnf_expr, to_output="both", run_i=i)
 
 
 if __name__ == "__main__":

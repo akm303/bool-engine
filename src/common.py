@@ -21,7 +21,7 @@ OVERWRITE_FILES = True
 # OUTPUT_DIRECTORY = "outputs"
 # BASE_TEST_FILENAME = "-test.tex"
 # BASE_DEBUG_FILENAME = "-debug.tex"
-COMPACT = True # compact strings
+COMPACT = True  # compact strings
 EXPANDED = not COMPACT  # expanded output (verbose)
 
 OUTPUT_DIRECTORY = "outputs"
@@ -32,8 +32,9 @@ def init_output_dir():
         shutil.rmtree(OUTPUT_DIRECTORY)
     os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 
-def get_calling_module()->str:
-    frame = inspect.stack()[2] # caller of wrapped printer
+
+def get_calling_module() -> str:
+    frame = inspect.stack()[2]  # caller of wrapped printer
     module = inspect.getmodule(frame[0])
     if module:
         # return module.__name__
@@ -41,7 +42,7 @@ def get_calling_module()->str:
     return "unknown"
 
 
-def print_to_file(printer: Callable, output_directory: str|None = None):
+def print_to_file(printer: Callable, output_directory: str | None = None):
     """
     Writes output to stdout and to specified file in output directory
     note: running files from root directory => output_files must be wrt root directory
@@ -64,12 +65,11 @@ def print_to_file(printer: Callable, output_directory: str|None = None):
     #         if pathlib.Path(output_file).suffix not in valid_suffix:
     #             output_file = pathlib.Path.with_suffix(".tex")
     #         return f"{OUTPUT_DIRECTORY}/{output_file}"
-        
+
     #     caller = get_calling_module()
-    #     return 
+    #     return
 
     # output_file = resolve_output_file(output_file)
-
 
     # if OVERWRITE_FILES:
     #     open(output_file, "w").close()
@@ -78,6 +78,7 @@ def print_to_file(printer: Callable, output_directory: str|None = None):
     output_file = f"{OUTPUT_DIRECTORY}/{caller}.md"
 
     if TO_LOG:
+
         def wrapped_printer(*args, **kwargs):
             # caller = get_calling_module()
             # output_file = f"{OUTPUT_DIRECTORY}/{caller}.md"
@@ -90,6 +91,7 @@ def print_to_file(printer: Callable, output_directory: str|None = None):
                 fkwargs = dict(kwargs)  # print to file
                 fkwargs["file"] = f
                 printer(*args, **fkwargs)
+
         wrapped_printer._is_wrapped = True
         return wrapped_printer
     return printer
@@ -118,7 +120,7 @@ def print_to_file(printer: Callable, output_directory: str|None = None):
 #             if pathlib.Path(output_file).suffix not in valid_suffix:
 #                 output_file = pathlib.Path.with_suffix(".tex")
 #             return f"{OUTPUT_DIRECTORY}/{output_file}"
-        
+
 #         caller = get_calling_module()
 #         return f"{OUTPUT_DIRECTORY}/{caller}.tex"
 
@@ -167,6 +169,7 @@ def dprint(*args, **kwargs):
     if DEBUG_PRINT:
         print(*args, **kwargs)
 
+
 # dprint = print_to_file(dprint, "debug/common.tex")
 
 
@@ -191,6 +194,7 @@ def parse_flags():
 # --------------------------------------------------- #
 # high-level string formatting
 
+
 def sfmt(*varlist: list, fmt=str) -> list[str]:
     """format string for every element in list"""
     return [fmt(var) for var in varlist]
@@ -199,8 +203,6 @@ def sfmt(*varlist: list, fmt=str) -> list[str]:
 def dfmt(*varlist: list, fmt=str) -> list:
     """format string for debug prints if debug enabled, otherwise return as is"""
     return varlist if not DEBUG_PRINT else sfmt(varlist, fmt=fmt)
-
-
 
 
 # --------------------------------------------------- #
@@ -551,18 +553,30 @@ def check_testcase(original, expected, actual):
 #     return total_results
 
 
-def step_through_generator(generator:Iterable, element_type:str = "element"):
-    userin = input()
-    not_all_components = True
+def step_through_generator(
+    generator: Iterable, element_type: str = "element", step_mode: bool = True
+):
+    not_all_components_extracted = True
     outputs = []
-    while userin in ["\n", "", " "] and not_all_components:
-        try:
-            element = next(generator)
-            outputs.append(element)
-            print(f"<< {element_type}: {element} >>")
-            userin = input()
-        except:
-            not_all_components = False
+    if step_mode:
+        userin = input()
+        while userin in ["\n", "", " "] and not_all_components_extracted:
+            try:
+                element = next(generator)
+                outputs.append(element)
+                print(f"<< {element_type}: {element} >>")
+                userin = input()
+            except:
+                not_all_components_extracted = False
+
+    else:
+        while not_all_components_extracted:
+            try:
+                element = next(generator)
+                outputs.append(element)
+                dprint(f"<< {element_type}: {element} >>")
+            except:
+                not_all_components_extracted = False
     return outputs
 
 

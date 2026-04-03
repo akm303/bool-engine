@@ -21,25 +21,40 @@ one-literal clauses are equivalent to a two literal ORing of itself (ie. "(u)" =
         and complementing the names of all vertices
 
 
+* strong components = strongly connected components = scc
 2. Tarjan's Algorithm to find strong components of a directed graph in O(n)
 by generating components in reverse topological order
     - finds if there is a path from any vertex to any other
     - in an order st. if (S1 is generated before S2) => (S1 is not a predecessor of S2)
+    
+3. for each literal, check that it doesnt share its complement's scc
+- for each literal u and its complement u'
+    if u & u' are in the same scc: evidence of unsatisfiability
+    ie. if there exists a path in the implication graph from literal u to its complement u'
+    implies a contradiction of the assignment properties 2.1 or 2.2 
+
+    
+---
+
+Strong Components:
+    Definition: every vertex is reachable by every other vertex
+        ie. $\forall u,v \in SCC, \exists path(u,v) \in SCC$
+    Aliases:
+    - ie. Strongly Connected Components
+    - ie. SCC (or scc)
+    Related Definitions:
+        If S1 and S2 are strong components st. an edge leads from vertex in S1 to a vertex in S2,
+        - then S1 is a predecessor of S2
+        - and S2 is a successor of S1.
+
+Assignment:
+    Definition: an assignment corresponds to set of truth value that make $F$ true $\iff$:
+    Properties:
+        2.1 $\forall$ nodes, $x$ and $x'$ receive complementary truth values
+        2.2 no edge $u -> v$ has u assigned true and v assigned false (ie. no path leads from a true node to false node)
 
 
-
-def:
-    If S1 and S2 are strong components such that
-    an edge leads from vertex in S1 to a vertex in S2,
-    then S1 is a predecessor of S2
-    and S2 is a successor of S1.
-
-an assignment corresponds to set of truth value that make $F$ true $\iff$:
-    2.1 $\forall$ nodes, $x$ and $x'$ receive complementary truth values
-    2.2 no edge $u -> v$ has u assigned true and v assigned false (ie. no path leads from a true node to false node)
-
-
-3. 2CNF Evaluation algorithm to prove Theorem 2
+2CNF Evaluation algorithm to prove Theorem 2
 Process strong components S of G(F) in reverse topological order as follows:
     (1)
     - if S is marked: go to next component
@@ -81,22 +96,6 @@ formula F is true iff none of the following three conditions hold:
 
 
 
-suppose we assign Truth values to vertices of G(F)
-assignment corresponds to a set of truth values for varuables which makes C true iff
-    - forall i, vertices xi and xi' receive complementary truth values
-    - no edge u->v has u assigned true and v assigned false
-        ie. no path leads froma true vertex to a false vertex
-
-Consider the SAT problem; Thus, assume all quantifiers in F are existential:
-    Thrm1: C is only satisfiable iff in G(F), vertex u_i is in the same strong component as its complement ui'
-    (ie. no strong component S is equal to its complement S')
-
-2SAT Algo:
-- process strong components of S of G(F) in reverse topological order as follows:
-    General Step:
-    if S is marked: do nothing
-    else, if S=S': stop. C is unsatisfiable.
-    else: mark S true and S' false
 
 
 """
@@ -104,7 +103,7 @@ Consider the SAT problem; Thus, assume all quantifiers in F are existential:
 from typing import Tuple, Iterator
 from pprint import pformat
 
-from cnf_ksat import parse_cnf_expression, is_2sat
+from cnf_ksat import parse_cnf_expression, is_2sat, setup_ksat
 from implication_graph import build_adj_graph, has_path
 from common import *
 
@@ -266,9 +265,11 @@ def is_satisfiable(
 
 
 def run(cnf_expr, run_i=-1):
-    expression, variables, literals, clauses = parse_cnf_expression(cnf_expr)
-    assert is_2sat(clauses)
+    print(bar40)
+    print("2-SAT Solver (Apsvall, Plass, Tarjan)")
 
+    expression, variables, literals, clauses = setup_ksat(cnf_expr, restrictions=[is_2sat])
+    
     expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
     test_title = f"expression{expr_counter_str} ::"
 
@@ -289,30 +290,9 @@ def run(cnf_expr, run_i=-1):
     print(f"graph (adjacency): {adjgraph_str(adj_graph,indent='  ')}")
 
     # 2. generate strong components
-
-    # test_graph = {
-    #     "x_0": {"x_1"},
-    #     "x_1": {"x_2"},
-    #     "x_2": {"x_0"},  # cycle (SCC of size 3)
-    #     "x_3": {"x_4"},
-    #     "x_4": {"x_3"},  # cycle (SCC of size 2)
-    #     "x_5": set(),  # singleton
-    # }
-
-    # component_gen = gen_strong_components(test_graph)
     component_gen = gen_strong_components(adj_graph)
-    print(component_gen)
-    all_components = step_through_generator(component_gen, "component")
-    print(f"all strong components: {all_components}")
-
-    # * do not remove, only comment
-    # dprint()
-    # paths = {}
-    # for node1 in adj_graph:
-    #     paths[node1] = {}
-    #     for node2 in adj_graph:
-    #         paths[node1][node2] = bool_num(has_path(node1, node2, adj_graph))
-    #     dprint(f"  path exists from {node_str(node1)} to {a_str(paths[node1])}")
+    all_components = step_through_generator(component_gen, "component", step_mode=False)
+    print(f"strongly connected components (scc): {all_components}")
 
     print()
     is_sat, contradiction = is_satisfiable(
@@ -320,9 +300,9 @@ def run(cnf_expr, run_i=-1):
     )
     print(f"is satisfiable? {is_sat}")
     if not is_sat:
-        print("evidence")
+        print("Evidence:")
         for c in contradiction:
-            print(f" < {c} >")
+            print(f" << {c} >>")
 
     print(bar40)
     print()
@@ -333,21 +313,23 @@ def tests():
     # dictionary mapping an expression to whether or not its satisfiable
     cnf_test_expressions = {
         # custom examples
-        # "(X+Y)": True,
-        # "(X+Y')": True,
-        # "(X'+Y)": True,
-        # "(X'+Y')": True,
-        # "(X+Y)(X'+Y)": True,
-        # "(X+Y)(X'+Y')": True,
-        # "(x_1' + x_2)(x_1' + x_3)": True,
+        "(X+Y)": True,
+        "(X+Y')": True,
+        "(X'+Y)": True,
+        "(X'+Y')": True,
+        "(X+Y)(X'+Y)": True,
+        "(X+Y)(X'+Y')": True,
+        "(x_1' + x_2)(x_1' + x_3)": True,
         # example from 2SAT on website
-        # "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
+        "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1')": True,
         "(x_1' + x_2) (x_2' + x_3) (x_3 + x_2) (x_3' + x_1') (x_3' + x_1)": False,
-        # "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
-        # "(x_3' + x_2) (x_2' + x_1) (x_1 + x_2) (x_1' + x_3') (x_1' + x_3)": False,  # swapped x_1 & x_3
+        "(x_2' + x_1) (x_1' + x_3) (x_3 + x_1) (x_3' + x_2') (x_3' + x_2)": False,  # swapped x_1 & x_2
+        "(x_3' + x_2) (x_2' + x_1) (x_1 + x_2) (x_1' + x_3') (x_1' + x_3)": False,  # swapped x_1 & x_3
         # custom examples
         "(x_a' + x_a)": True,
         "(A + A)(A' + A')": False,
+        # from [site](https://cp-algorithms.com/graph/2SAT.html)
+        "(a+b')(a'+b)(a'+b')(a+c')": True,
     }
 
     test_results = {}
