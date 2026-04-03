@@ -103,7 +103,8 @@ formula F is true iff none of the following three conditions hold:
 from typing import Tuple, Iterator
 from pprint import pformat
 
-from cnf_ksat import parse_cnf_expression, is_2sat, setup_ksat
+from cnf_ksat import parse_cnf_expression, setup_ksat
+from cnf_ksat import req_2sat
 from implication_graph import build_adj_graph, has_path
 from common import *
 
@@ -268,7 +269,7 @@ def run(cnf_expr, run_i=-1):
     print(bar40)
     print("2-SAT Solver (Apsvall, Plass, Tarjan)")
 
-    expression, variables, literals, clauses = setup_ksat(cnf_expr, restrictions=[is_2sat])
+    expression, variables, literals, clauses = setup_ksat(cnf_expr, restrictions=[req_2sat])
     
     expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
     test_title = f"expression{expr_counter_str} ::"

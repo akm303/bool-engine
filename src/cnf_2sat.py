@@ -56,7 +56,8 @@ Consider the SAT problem; Thus, assume all quantifiers in F are existential:
 from typing import Tuple
 from pprint import pformat
 
-from cnf_ksat import setup_ksat, is_2sat
+from cnf_ksat import setup_ksat
+from cnf_ksat import req_2sat
 from implication_graph import *
 from common import *
 
@@ -130,7 +131,7 @@ def is_satisfiable(
 def run(cnf_expr, run_i=-1):
     print(bar40)
     print("2-SAT Solver (custom)")
-    expression, variables, literals, clauses = setup_ksat(cnf_expr,restrictions=[is_2sat])
+    expression, variables, literals, clauses = setup_ksat(cnf_expr,restrictions=[req_2sat])
 
     # each clause has 2 literals because 2sat
     nodes = nodes_from_variables(variables)
