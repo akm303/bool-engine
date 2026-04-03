@@ -15,7 +15,7 @@ from itertools import count
 from pprint import pformat
 
 from cnf_2sat import run as run_2sat
-from cnf_ksat import run as run_ksat
+from cnf_ksat import run as run_ksat, test_to_2sat
 from common import *
 
 PASS = "Pass"
@@ -38,7 +38,7 @@ def check_exact(input: Any, expected: Any, actual: Any) -> bool:
     result_str = passes(case_passed)
 
     input_str = f'"{input}"'
-    outstr = f'  {input_str} => {actual}: {result_str}'
+    outstr = f"  {input_str} => {actual}: {result_str}"
     if not COMPACT:
         outstr = (
             f'  from {input_str:10} => expect("{expected}") ?? actual("{actual}")  '
@@ -141,6 +141,7 @@ class TestRunner:
     def run_case(self, test_case: TestCase, i: int = 0) -> bool:
         """run a single test case"""
         test_actual = test_case.call(self.solver)
+        # print('.')
         test_result = test_case.check(test_actual)
         return test_result
 
@@ -630,9 +631,24 @@ syntax_tests = [syntax_to_local_test_collection] + syntax_from_local_tests()
 
 # ----------------------------------------- #
 # ----------------------------------------- #
+# src util tests
+to_2sat_collection = {
+    KEY_LABEL: "Helper Function: to_2sat()",
+    KEY_FUNC: test_to_2sat,
+    KEY_CHECKER: check_exact,
+    KEY_CASES: {
+        # custom examples
+        "(x)": [["x", "x"]],
+        "(x,x)": [["x", "x"]],
+        "(x,x,x)": None,
+        "(x,x)(x)": [["x", "x"],["x", "x"]],
+        "(x,x)(x,x)": [["x", "x"],["x", "x"]],
+        "(x,x)(x,x,x)": None,
+        "(x,x,x)(x,x)": None
+    },
+}
+
 # src tests
-
-
 cnf_2sat_collection = {
     KEY_LABEL: "2SAT Solver",
     KEY_FUNC: run_2sat,
@@ -704,7 +720,7 @@ cnf_ksat_collection = {
         # "(A + A)(A' + A')":
     },
 }
-sat_tests = [cnf_2sat_collection, cnf_ksat_collection]
+sat_tests = [to_2sat_collection, cnf_2sat_collection, cnf_ksat_collection]
 
 
 def run_test(test_hook, all_passed_hook=None, test_title="Test: ???"):
@@ -768,6 +784,7 @@ if __name__ == "__main__":
 
         result = run_test(test_hook, all_passed_hook, test_title)
         results[test_title] = result
+        # print()
 
     if all(r == True for r in results.values()):
         print("All tests passed")

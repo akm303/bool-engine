@@ -56,6 +56,7 @@ def parse_cnf_expression(
     return expression, variables, literals, clauses
 
 
+# --------------------------------------------------- #
 # def is_ksat(clauses: list[c_type], k: int) -> bool:
     # return all(len(clause) == k for clause in clauses)
 def is_ksat(clauses, k: int) -> bool:
@@ -70,6 +71,32 @@ def is_2sat(expression, variables, literals, clauses) -> bool:
     # return is_ksat(clauses, 2)
 def is_3sat(expression, variables, literals, clauses) -> bool:
     return is_ksat(clauses, 2)
+
+
+def to_2sat(clauses) -> bool:
+    """convert set of clauses with 1 or 2 literlas in consistent 2CNF structure"""
+    rclauses = []
+    for clause in clauses:
+        if len(clause) > 2: # clause has too many literals
+            dprint(f"clause {clause} has too many literals; must have <= 2")
+            return None
+        if len(clause) < 2: # clause has 1 literal
+            dprint(f"clause {clause} has 1 literal")
+            clause += clause # duplicate the clause
+            dprint(f"clause => {clause}")
+        rclauses.append(clause)
+    dprint(f"returning: {rclauses}")
+    return rclauses
+
+
+def test_to_2sat(expr_str):
+    """
+    used as helper in testing script (since to_2sat needs intermediate values: clauses)
+    parses expression string, passes clause to conversion function
+    """
+    expression, variables, literals, clauses = parse_cnf_expression(expr_str)
+    return to_2sat(clauses)
+
 
 # --------------------------------------------------- #
 def setup_ksat(
