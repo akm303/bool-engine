@@ -242,8 +242,8 @@ ASSIGNMENT_PATTERN = r":?="
 
 # -------------------------------- #
 # common string constructors
-def bar(n):
-    return "-" * n
+def bar(n,char='-'):
+    return char * n
 
 
 bar40 = bar(40)

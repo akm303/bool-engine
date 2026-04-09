@@ -16,6 +16,7 @@ from typing import Tuple
 
 from common import *
 
+WILDCARD = "*"
 
 # test outputs to tests directory
 # print = print_to_file(print,"stdout/cnf_ksat.tex")
@@ -216,7 +217,7 @@ def backtrack(
         # complete assignment, fill remaining var with wildcard and return result
         if WITH_FILL and unassigned_vars:
             for var in unassigned_vars:
-                assignment[var] = "*"
+                assignment[var] = WILDCARD
         if COMPACT:
             dprint(f"{indent}solution: A={assignment_str(assignment)}")
         else:
