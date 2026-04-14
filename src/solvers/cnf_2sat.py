@@ -56,10 +56,10 @@ Consider the SAT problem; Thus, assume all quantifiers in F are existential:
 from typing import Tuple
 from pprint import pformat
 
-from cnf_ksat import setup_ksat
-from cnf_ksat import req_2sat
-from implication_graph import *
-from common import *
+from src.solvers.cnf_ksat import setup_ksat
+from src.solvers.cnf_ksat import req_2sat
+from src.structures.implication_graph import *
+from src.common import *
 
 
 # test outputs to tests directory
@@ -213,9 +213,13 @@ def tests():
 
 
 if __name__ == "__main__":
+    print("running `cnf_2sat.py`")
+    print()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
         run(args.expression)
     else:
         tests()
+else: 
+    print("importing `cnf_2sat.py`")

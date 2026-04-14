@@ -105,6 +105,9 @@ def full_test():
     return
 
 if __name__ == "__main__":
+    print("running `truthtables.py`")
     full_test()
+else:
+    print("running `truthtables.py`")
 
 

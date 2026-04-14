@@ -57,4 +57,8 @@ def main():
 
 
 if __name__ == "__main__":
+    print("running `implication_graph.py`")
+    print()
     main()
+else: 
+    print("importing `implication_graph.py`")

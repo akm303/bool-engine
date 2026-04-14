@@ -30,10 +30,10 @@ Input: A formula (set of clauses) F
 from pprint import pformat
 from typing import Tuple
 
-from cnf_ksat import parse_cnf_expression, setup_ksat
-from cnf_ksat import req_2sat
-from cnf_ksat import WILDCARD
-from common import *
+from src.solvers.cnf_ksat import parse_cnf_expression, setup_ksat
+from src.solvers.cnf_ksat import req_2sat
+from src.solvers.cnf_ksat import WILDCARD
+from src.common import *
 
 
 # def get_unit_clause_contradictions(clauses: list[c_type]) -> list[v_type]:
@@ -292,9 +292,13 @@ def tests():
 
 
 if __name__ == "__main__":
+    print("running `dp_2sat.py`")
+    print()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
         run(args.expression)
     else:
         tests()
+else:
+    print("importing `dp_2sat.py`")

@@ -1,0 +1,19 @@
+[project]
+name = "bool-engine"
+version = "1.1"
+authors = [
+  { name="Ari Majumdar", email="majumdak97@gmail.com" },
+]
+description = "Custom Python Library For Boolean Logic Solvers and Truth Table Operations"
+readme = "readme.md"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools >= 65.5.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.urls]
+Homepage = "https://github.com/akm303/bool-engine"

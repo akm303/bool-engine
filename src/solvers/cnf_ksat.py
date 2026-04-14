@@ -14,7 +14,7 @@ import re
 from pprint import pformat
 from typing import Tuple
 
-from common import *
+from src.common import *
 
 WILDCARD = "*"
 
@@ -314,9 +314,13 @@ def tests():
 
 
 if __name__ == "__main__":
+    print("running `cnf_ksat.py`")
+    print()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
         run(args.expression)
     else:
         tests()
+else: 
+    print("importing `cnf_ksat.py`")

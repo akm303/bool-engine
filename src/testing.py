@@ -14,9 +14,10 @@ from typing import Collection, Tuple, Callable, Iterable, Any
 from itertools import count
 from pprint import pformat
 
-from cnf_2sat import run as run_2sat
-from cnf_ksat import run as run_ksat, test_to_2sat
-from common import *
+from src.solvers.cnf_2sat import run as run_2sat
+from src.solvers.cnf_ksat import run as run_ksat, test_to_2sat
+from src.common import *
+# from common import *
 
 PASS = "Pass"
 FAIL = "Fail"
@@ -403,17 +404,6 @@ def tester_test() -> bool:
 # ----------------------------------------- #
 # util tests
 
-
-# def check_fmt_case(original, expected, actual):
-#     case_passed = expected == actual
-#     original = f'"{original}"'
-#     print(
-#         f'  case {original:10}: expect("{expected}") == actual("{actual}")? '
-#         f"{'Pass' if case_passed else 'Fail'}"
-#     )
-#     return case_passed
-
-
 # - syntax formatting to local
 syntax_to_local_test_collection = {
     KEY_LABEL: "Syntax [To Local]",
@@ -756,6 +746,8 @@ def run_test(test_hook, all_passed_hook=None, test_title="Test: ???"):
 
 
 if __name__ == "__main__":
+    print("running `testing.py")
+    print()
     args = parse_flags()
     set_debug(args.debug)
 
@@ -796,3 +788,6 @@ if __name__ == "__main__":
             if test_result != True
         ]
         print(f"{failed_tests}")
+
+else:
+    print("importing `testing.py")

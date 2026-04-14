@@ -82,3 +82,15 @@ class NAND(Gate):
 class NOR(Gate):
     def __init__(self, inputs):
         super().__init__(inputs, op=nor_op)
+
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    print("running `gates.py")
+    print()
+else:
+    print("importing `gates.py`")

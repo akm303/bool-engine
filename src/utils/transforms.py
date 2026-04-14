@@ -214,6 +214,9 @@ def test():
 
 
 if __name__ == "__main__":
+    print("running `transformers.py`")
     args = parse_flags()
     set_debug(args.debug)
     test()
+else:
+    print("importing `expressions.py`")
