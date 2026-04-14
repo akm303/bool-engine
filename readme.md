@@ -1,7 +1,7 @@
 # Boolean Engine (V2)
 Custom Python Library For Boolean Logic Solvers and Truth Table Operations
 
-`main.py`, currently all operations must be invoked directly from each script.
+`main.py`, currently wip; all operations must be invoked directly from each script.
 eg. to run a 2sat solver, must invoke `python -m src.solver.cnf_2sat.py -e "<some 2cnf expression>"`
 
 
