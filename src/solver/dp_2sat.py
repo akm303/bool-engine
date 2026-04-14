@@ -11,7 +11,7 @@ Input: A formula (set of clauses) F
 
     if F has single-phase variables
         //bc we can make those clauses true
-            remove their clauses from F;
+        remove their clauses from F;
     endif
 
     // now eliminate a var and its resolvents
