@@ -583,7 +583,8 @@ def step_through_generator(
 init_output_dir()
 
 if __name__ == "__main__":
-    print("running `common.py")
+    dprint("running `common.py")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
 
@@ -591,4 +592,4 @@ if __name__ == "__main__":
     # tests()
 
 else:
-    print("importing `common.py")
+    dprint("importing `common.py")

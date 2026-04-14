@@ -103,9 +103,9 @@ formula F is true iff none of the following three conditions hold:
 from typing import Tuple, Iterator
 from pprint import pformat
 
-from src.solvers.cnf_ksat import parse_cnf_expression, setup_ksat
-from src.solvers.cnf_ksat import req_2sat
-from src.structures.implication_graph import build_adj_graph, has_path
+from src.solver.cnf_ksat import parse_cnf_expression, setup_ksat
+from src.solver.cnf_ksat import req_2sat
+from src.structure.implication_graph import build_adj_graph, has_path
 from common import *
 
 
@@ -355,8 +355,8 @@ def tests():
 
 
 if __name__ == "__main__":
-    print("running `cnf_apt.py`")
-    print()
+    dprint("running `cnf_apt.py`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
@@ -364,4 +364,4 @@ if __name__ == "__main__":
     else:
         tests()
 else:
-    print("importing `cnf_apt.py`")
+    dprint("importing `cnf_apt.py`")

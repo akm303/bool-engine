@@ -9,7 +9,8 @@ output formula grows linearly relative to input circuits
 import re
 from itertools import count
 from typing import Tuple
-from common import *
+
+from src.common import *
 
 
 # --------------------------------------------------- #
@@ -214,9 +215,10 @@ def test():
 
 
 if __name__ == "__main__":
-    print("running `transformers.py`")
+    dprint("running `transformers.py`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
     test()
 else:
-    print("importing `expressions.py`")
+    dprint("importing `expressions.py`")

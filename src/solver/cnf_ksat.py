@@ -15,8 +15,8 @@ from pprint import pformat
 from typing import Tuple
 
 from src.common import *
-from src.structures.ksat import *
-from src.structures.parsers import *
+from src.structure.ksat import *
+from src.structure.parsers import *
 
 WILDCARD = "*"
 
@@ -307,8 +307,8 @@ def tests():
 
 
 if __name__ == "__main__":
-    print("running `cnf_ksat.py`")
-    print()
+    dprint("running `cnf_ksat.py`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
@@ -316,4 +316,4 @@ if __name__ == "__main__":
     else:
         tests()
 else: 
-    print("importing `cnf_ksat.py`")
+    dprint("importing `cnf_ksat.py`")

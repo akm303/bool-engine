@@ -4,6 +4,7 @@ from collections import namedtuple
 from itertools import count, combinations
 from typing import Tuple, Any
 
+from common import *
 
 # -------------------------- #
 #          Objects           #
@@ -150,8 +151,8 @@ def obj_str(obj_list: list, indent=0):
 # -------------------------- #
 
 if __name__ == "__main__":
-    print("running `expressions.py`")
-    print()
+    dprint("running `expressions.py`")
+    dprint()
     # -------------------------- #
     #           tests            #
     # -------------------------- #
@@ -349,4 +350,4 @@ if __name__ == "__main__":
 
         tlogger.info("\n".join(event_lines))
 else:
-    print("importing `expressions.py`")
+    dprint("importing `expressions.py`")

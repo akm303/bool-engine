@@ -1,7 +1,7 @@
-from src.solvers.cnf_ksat import run as run_ksat
-from src.solvers.cnf_apt import run as run_apt
-from src.solvers.cnf_2sat import run as run_2sat_custom
-from src.solvers.dp_2sat import run as run_2sat_dp
+from src.solver.cnf_ksat import run as run_ksat
+from src.solver.cnf_apt import run as run_apt
+from src.solver.cnf_2sat import run as run_2sat_custom
+from src.solver.dp_2sat import run as run_2sat_dp
 
 
 import argparse

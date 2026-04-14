@@ -30,9 +30,9 @@ Input: A formula (set of clauses) F
 from pprint import pformat
 from typing import Tuple
 
-from src.solvers.cnf_ksat import parse_cnf_expression, setup_ksat
-from src.solvers.cnf_ksat import req_2sat
-from src.solvers.cnf_ksat import WILDCARD
+from src.solver.cnf_ksat import parse_cnf_expression, setup_ksat
+from src.solver.cnf_ksat import req_2sat
+from src.solver.cnf_ksat import WILDCARD
 from src.common import *
 
 
@@ -292,8 +292,8 @@ def tests():
 
 
 if __name__ == "__main__":
-    print("running `dp_2sat.py`")
-    print()
+    dprint("running `dp_2sat.py`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
@@ -301,4 +301,4 @@ if __name__ == "__main__":
     else:
         tests()
 else:
-    print("importing `dp_2sat.py`")
+    dprint("importing `dp_2sat.py`")

@@ -15,7 +15,7 @@ From " A LINEAR-TIME ALGORITHM FOR TESTING THE TRUTH OF CERTAIN QUANTIFIED BOOLE
 By Apsvall, Plass, Tarjan
 
 Graph G(F) is a directed graph constructed from quantified boolean formula with no free variables:
-    - F = Q1x1 Q2x2 Q3x3 ... Qnxn C 
+    - F = Q1x1 Q2x2 Q3x3 ... Qnxn C
     st. C is in CNF with at most 2 literals per clause
 one-literal clauses are equivalent to a two literal ORing of itself (ie. "(u)" = "(u + u)")
 
@@ -23,18 +23,18 @@ one-literal clauses are equivalent to a two literal ORing of itself (ie. "(u)" =
     .1 for each variable xi, we add vertices xi and xi'
     .2 for each clause (u + v), add edges (u'->v) and (v'->u)
     - duality property: G(F) is isomorphic to graph obtained from G(F) by:
-        reversing the directions of all edges 
+        reversing the directions of all edges
         and complementing the names of all vertices
 
 
 Tarjan's Linear Time Algorithm:
-finds strong components of a directed graph 
+finds strong components of a directed graph
     (ie. finds if there is a path from any vertex to any other)
 by generating components in reverse topological order
     (ie. in an order st. if (S1 is generated before S2) => (S1 is not a predecessor of S2))
 
 suppose we assign Truth values to vertices of G(F)
-assignment corresponds to a set of truth values for varuables which makes C true iff 
+assignment corresponds to a set of truth values for varuables which makes C true iff
     - forall i, vertices xi and xi' receive complementary truth values
     - no edge u->v has u assigned true and v assigned false
         ie. no path leads froma true vertex to a false vertex
@@ -45,7 +45,7 @@ Consider the SAT problem; Thus, assume all quantifiers in F are existential:
 
 2SAT Algo:
 - process strong components of S of G(F) in reverse topological order as follows:
-    General Step: 
+    General Step:
     if S is marked: do nothing
     else, if S=S': stop. C is unsatisfiable.
     else: mark S true and S' false
@@ -56,9 +56,9 @@ Consider the SAT problem; Thus, assume all quantifiers in F are existential:
 from typing import Tuple
 from pprint import pformat
 
-from src.solvers.cnf_ksat import setup_ksat
-from src.solvers.cnf_ksat import req_2sat
-from src.structures.implication_graph import *
+from src.solver.cnf_ksat import setup_ksat
+from src.solver.cnf_ksat import req_2sat
+from src.structure.implication_graph import *
 from src.common import *
 
 
@@ -131,7 +131,9 @@ def is_satisfiable(
 def run(cnf_expr, run_i=-1):
     print(bar40)
     print("2-SAT Solver (custom)")
-    expression, variables, literals, clauses = setup_ksat(cnf_expr,restrictions=[req_2sat])
+    expression, variables, literals, clauses = setup_ksat(
+        cnf_expr, restrictions=[req_2sat]
+    )
 
     # each clause has 2 literals because 2sat
     nodes = nodes_from_variables(variables)
@@ -165,7 +167,7 @@ def run(cnf_expr, run_i=-1):
     print(f"is satisfiable? {is_sat}")
     if not is_sat:
         print(f"evidence: paths exist between {contradiction}")
-    
+
     print(bar40)
     print()
     return is_sat
@@ -213,13 +215,13 @@ def tests():
 
 
 if __name__ == "__main__":
-    print("running `cnf_2sat.py`")
-    print()
+    dprint("running `cnf_2sat.py`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
     if args.expression is not None:
         run(args.expression)
     else:
         tests()
-else: 
-    print("importing `cnf_2sat.py`")
+else:
+    dprint("importing `cnf_2sat.py`")

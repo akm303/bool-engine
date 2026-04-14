@@ -1,9 +1,5 @@
-importing `implication_graph.py`
-importing `cnf_2sat.py`
 running `testing.py
 
-## running: `tester_test()`
-----------------------------------------
 ```tex
 ----------------------------------------
 TESTER TEST (META)
@@ -82,8 +78,6 @@ Tester Passes
 ## completed: `tester_test()`
 
 
-## running: Syntax [To Local]
-----------------------------------------
 ```tex
 
 
@@ -98,8 +92,6 @@ Syntax [To Local] output:
 ## completed: Syntax [To Local]
 
 
-## running: Helper Function: to_2sat()
-----------------------------------------
 ```tex
 
 
@@ -114,8 +106,6 @@ Helper Function: to_2sat() output:
 ## completed: Helper Function: to_2sat()
 
 
-## running: 2SAT Solver
-----------------------------------------
 ```tex
 ----------------------------------------
 2-SAT Solver (custom)
@@ -321,7 +311,7 @@ edges: [( x_1 , x_2 ), ( x_2', x_1'), ( x_2 , x_3 ), ( x_3', x_2'), ( x_3', x_2 
 graph (adjacency): {
   x_1 : {x_3', x_2 },
   x_2 : {x_3 },
-  x_3 : {x_1 , x_1'},
+  x_3 : {x_1', x_1 },
   x_1': {x_3'},
   x_2': {x_3 , x_1'},
   x_3': {x_2 , x_2'}
@@ -330,11 +320,11 @@ graph (adjacency): {
   reachable from x_1 : [x_1 , x_3', x_2 , x_3 , x_1', x_2']
   reachable from x_1': [x_1', x_3', x_2 , x_3 , x_1 , x_2']
  ! found bidirectional paths between [ x_1  <=> x_1' ]
-  reachable from x_2 : [x_2 , x_3 , x_1 , x_3', x_2', x_1']
-  reachable from x_2': [x_2', x_3 , x_1 , x_3', x_2 , x_1']
+  reachable from x_2 : [x_2 , x_3 , x_1', x_3', x_2', x_1 ]
+  reachable from x_2': [x_2', x_3 , x_1', x_3', x_2 , x_1 ]
  ! found bidirectional paths between [ x_2  <=> x_2' ]
-  reachable from x_3 : [x_3 , x_1 , x_3', x_2 , x_2', x_1']
-  reachable from x_3': [x_3', x_2 , x_3 , x_1 , x_1', x_2']
+  reachable from x_3 : [x_3 , x_1', x_3', x_2 , x_2', x_1 ]
+  reachable from x_3': [x_3', x_2 , x_3 , x_1', x_1 , x_2']
  ! found bidirectional paths between [ x_3  <=> x_3' ]
 is satisfiable? False
 evidence: paths exist between [('x_1', "x_1'"), ('x_2', "x_2'"), ('x_3', "x_3'")]
@@ -351,21 +341,21 @@ nodes: [x_1 , x_2 , x_3 , x_1', x_2', x_3']
 edges: [( x_2 , x_1 ), ( x_1', x_2'), ( x_1 , x_3 ), ( x_3', x_1'), ( x_3', x_1 ), ( x_1', x_3 ), ( x_3 , x_2'), ( x_2 , x_3'), ( x_3 , x_2 ), ( x_2', x_3')]
 graph (adjacency): {
   x_1 : {x_3 },
-  x_2 : {x_1 , x_3'},
+  x_2 : {x_3', x_1 },
   x_3 : {x_2 , x_2'},
   x_1': {x_3 , x_2'},
   x_2': {x_3'},
-  x_3': {x_1 , x_1'}
+  x_3': {x_1', x_1 }
 }
 
   reachable from x_1 : [x_1 , x_3 , x_2 , x_3', x_1', x_2']
-  reachable from x_1': [x_1', x_3 , x_2 , x_1 , x_3', x_2']
+  reachable from x_1': [x_1', x_3 , x_2 , x_3', x_1 , x_2']
  ! found bidirectional paths between [ x_1  <=> x_1' ]
-  reachable from x_2 : [x_2 , x_1 , x_3 , x_2', x_3', x_1']
-  reachable from x_2': [x_2', x_3', x_1 , x_3 , x_2 , x_1']
+  reachable from x_2 : [x_2 , x_3', x_1', x_3 , x_2', x_1 ]
+  reachable from x_2': [x_2', x_3', x_1', x_3 , x_2 , x_1 ]
  ! found bidirectional paths between [ x_2  <=> x_2' ]
-  reachable from x_3 : [x_3 , x_2 , x_1 , x_3', x_1', x_2']
-  reachable from x_3': [x_3', x_1 , x_3 , x_2 , x_2', x_1']
+  reachable from x_3 : [x_3 , x_2 , x_3', x_1', x_2', x_1 ]
+  reachable from x_3': [x_3', x_1', x_3 , x_2 , x_1 , x_2']
  ! found bidirectional paths between [ x_3  <=> x_3' ]
 is satisfiable? False
 evidence: paths exist between [('x_1', "x_1'"), ('x_2', "x_2'"), ('x_3', "x_3'")]
@@ -383,7 +373,7 @@ edges: [( x_3 , x_2 ), ( x_2', x_3'), ( x_2 , x_1 ), ( x_1', x_2'), ( x_1', x_2 
 graph (adjacency): {
   x_1 : {x_3', x_3 },
   x_2 : {x_1 },
-  x_3 : {x_1', x_2 },
+  x_3 : {x_2 , x_1'},
   x_1': {x_2 , x_2'},
   x_2': {x_3', x_1 },
   x_3': {x_1'}
@@ -395,7 +385,7 @@ graph (adjacency): {
   reachable from x_2 : [x_2 , x_1 , x_3', x_1', x_2', x_3 ]
   reachable from x_2': [x_2', x_3', x_1', x_2 , x_1 , x_3 ]
  ! found bidirectional paths between [ x_2  <=> x_2' ]
-  reachable from x_3 : [x_3 , x_1', x_2 , x_1 , x_3', x_2']
+  reachable from x_3 : [x_3 , x_2 , x_1 , x_3', x_1', x_2']
   reachable from x_3': [x_3', x_1', x_2 , x_1 , x_3 , x_2']
  ! found bidirectional paths between [ x_3  <=> x_3' ]
 is satisfiable? False
@@ -455,8 +445,6 @@ evidence: paths exist between [('A', "A'")]
 ## completed: 2SAT Solver
 
 
-## running: kSAT Solver
-----------------------------------------
 ```tex
 ----------------------------------------
 k-SAT Solver

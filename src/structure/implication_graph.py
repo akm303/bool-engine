@@ -1,7 +1,7 @@
 from typing import Tuple
 from pprint import pformat
 
-from common import *
+from src.common import *
 
 
 # print = print_to_file(dprint, "stdout/implication_graph.tex")
@@ -57,8 +57,8 @@ def main():
 
 
 if __name__ == "__main__":
-    print("running `implication_graph.py`")
-    print()
+    dprint("running `implication_graph.py`")
+    dprint()
     main()
 else: 
-    print("importing `implication_graph.py`")
+    dprint("importing `implication_graph.py`")

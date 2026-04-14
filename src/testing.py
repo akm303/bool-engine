@@ -14,10 +14,10 @@ from typing import Collection, Tuple, Callable, Iterable, Any
 from itertools import count
 from pprint import pformat
 
-from src.solvers.cnf_2sat import run as run_2sat
-from src.solvers.cnf_ksat import run as run_ksat
+from src.solver.cnf_2sat import run as run_2sat
+from src.solver.cnf_ksat import run as run_ksat
 
-from src.structures.ksat import *
+from src.structure.ksat import *
 from src.utils.syntax import *
 from src.utils.tester import *
 from src.common import *
@@ -495,8 +495,8 @@ sat_tests = [to_2sat_collection, cnf_2sat_collection, cnf_ksat_collection]
 
 
 def run_test(test_hook, all_passed_hook=None, test_title="Test: ???"):
-    print(f"## running: {test_title}")
-    print(bar40)
+    dprint(f"## running: {test_title}")
+    dprint(bar40)
     print("```tex")
 
     results = test_hook()
@@ -571,4 +571,4 @@ if __name__ == "__main__":
         print(f"{failed_tests}")
 
 else:
-    print("importing `testing.py")
+    dprint("importing `testing.py")
