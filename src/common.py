@@ -24,7 +24,7 @@ OVERWRITE_FILES = True
 COMPACT = True  # compact strings
 EXPANDED = not COMPACT  # expanded output (verbose)
 
-OUTPUT_DIRECTORY = "outputs"
+OUTPUT_DIRECTORY = ".outputs"
 
 
 def init_output_dir():

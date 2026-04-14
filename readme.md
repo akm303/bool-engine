@@ -11,11 +11,12 @@ eg. to run a 2sat solver, must invoke `python -m src.solver.cnf_2sat.py -e "<som
   - [Features](#features)
     - [Truthtable Generation](#truthtable-generation)
     - [SAT Solvers](#sat-solvers)
-      - [k-SAT Solver](#k-sat-solver)
-      - [2-SAT Solver](#2-sat-solver)
+      - [k-SAT Solvers](#k-sat-solvers)
+      - [2-SAT Solvers](#2-sat-solvers)
   - [Testing](#testing)
   - [Utils](#utils)
       - [CNF Parser](#cnf-parser)
+  - [Project Architecture](#project-architecture)
 
 
 ---
@@ -30,40 +31,37 @@ Display a formatted truthtable to console with boolean expressions
   - display variables from list
   - extract & display subexpressions of listed variables
 
-run testcases:
-`python src.structures.truthtables.py`
-
+run local tests: `python src.structures.truthtables.py`
+run custom inputs: wip
 
 ---
 
 ### SAT Solvers
 
-#### k-SAT Solver
+#### k-SAT Solvers
 Solves k-SAT problem using dynamic programming to generate a candidate assignment and prove satisfiability.  
 Generates a viable assignment of variables to boolean values  
 [`src/solvers/cnf_ksat`](src/solvers/cnf_ksat.py)  
 
-run tests: `python src/cnf_ksat.py`  
-run custom: `python src/cnf_ksat.py -e "<cnf expression>"`  
+run local tests: `python -m src.solver.cnf_ksat`  
+run custom inputs: `python -m src.solver.cnf_ksat -e "<cnf expression>"`  
 
 
-#### 2-SAT Solver
+#### 2-SAT Solvers
 Solves 2SAT problem in linear time using implication graph  
-- [`src/solvers/cnf_2sat`](src/solvers/cnf_2sat.py)  
-- [`src/solvers/cnf_apt`](src/solvers/cnf_apt.py)  
-- [`src/solvers/dp_2sat`](src/solvers/dp_2sat.py)  
+- [`Custom Algorithm (src/solvers/cnf_2sat)`](src/solvers/cnf_2sat.py)  
+- [Apsvall, Plass, Tarjan's Algorithm (`src/solvers/cnf_apt`)](src/solvers/cnf_apt.py)  
+- [DP Algorithm (`src/solvers/dp_2sat`)](src/solvers/dp_2sat.py)  
 
-run tests: `python -m src.solver.cnf_2sat`    
-<!-- run tests: `python src/cnf_2sat.py`   -->
-run tests: `python -m src.solver.cnf_2sat -e "<2sat expression>`    
-run custom: `python src/cnf_ksat.py -e "<2sat expression>"`  
+run local tests: `python -m src.solver.cnf_2sat`    
+run custom inputs: `python -m src.solver.cnf_2sat -e "<2cnf expression>`    
+
 
 ---
 ## Testing
-`src/testing.py` - custom testing scripts for each solver, utility, and structure
+`src/testing.py` - custom global testing scripts for each solver, utility, and structure
 
 run all tests: `python -m src.testing`  
-
 
 
 ---
@@ -76,4 +74,35 @@ run all tests: `python -m src.testing`
   - each literal is a variable or its complement
 - returns an assignment/mapping of variables to boolean values such that the expression evaluates to True (or 1)
 
+
+---
+## Project Architecture
+```
+├── src
+│   ├── solver
+│   │   ├── cnf_2sat.py
+│   │   ├── cnf_apt.py
+│   │   ├── cnf_ksat.py
+│   │   └── dp_2sat.py
+│   ├── structure
+│   │   ├── gates.py
+│   │   ├── implication_graph.py
+│   │   ├── ksat.py
+│   │   ├── parsers.py
+│   │   └── truthtables.py
+│   ├── tests
+│   ├── utils
+│   │   ├── expressions.py
+│   │   ├── syntax.py
+│   │   ├── tester.py
+│   │   └── transforms.py
+│   ├── common.py
+│   └── testing.py
+├── main.py
+├── pyproject.toml
+├── readme.md
+└── setup.py
+
+6 directories, 19 files
+```
 
