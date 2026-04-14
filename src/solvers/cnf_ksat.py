@@ -15,6 +15,8 @@ from pprint import pformat
 from typing import Tuple
 
 from src.common import *
+from src.structures.ksat import *
+from src.structures.parsers import *
 
 WILDCARD = "*"
 
@@ -31,84 +33,75 @@ WITH_FILL = True
 # # STDOUT_TYPE = 1 #concise
 
 
-def parse_cnf_expression(
-    expr_string: str,
-) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]]:
-    expression = expr_string.replace(" ", "")
+# def parse_cnf_expression(
+#     expr_string: str,
+# ) -> Tuple[e_type, list[v_type], list[l_type], list[c_type]]:
+#     expression = expr_string.replace(" ", "")
 
-    lit_pattern = LITERAL_PATTERN
-    clause_pattern = SUBEXPR_PATTERN
+#     lit_pattern = LITERAL_PATTERN
+#     clause_pattern = SUBEXPR_PATTERN
 
-    # clauses: list of clause lists
-    # each clause is a list of its literals
-    clauses = re.findall(clause_pattern, expression)
-    clauses = [re.findall(lit_pattern, clause) for clause in clauses]
+#     # clauses: list of clause lists
+#     # each clause is a list of its literals
+#     clauses = re.findall(clause_pattern, expression)
+#     clauses = [re.findall(lit_pattern, clause) for clause in clauses]
 
-    literals: set[l_type] = set()
-    variables: set[v_type] = set()
-    for clause in clauses:
-        for literal in clause:
-            literals.add(literal)
-            variables.add(base_variable(literal))
+#     literals: set[l_type] = set()
+#     variables: set[v_type] = set()
+#     for clause in clauses:
+#         for literal in clause:
+#             literals.add(literal)
+#             variables.add(base_variable(literal))
 
-    literals = sorted(list(literals))
-    variables = sorted(list(variables))
+#     literals = sorted(list(literals))
+#     variables = sorted(list(variables))
 
-    return expression, variables, literals, clauses
+#     return expression, variables, literals, clauses
 
 
 # --------------------------------------------------- #
 # requirements
 
 
-# --------------------------------------------------- #
-# def is_ksat(clauses: list[c_type], k: int) -> bool:
-# return all(len(clause) == k for clause in clauses)
-def is_ksat(clauses, k: int) -> bool:
-    return all(len(clause) == k for clause in clauses)
+# # --------------------------------------------------- #
+# # def is_ksat(clauses: list[c_type], k: int) -> bool:
+# # return all(len(clause) == k for clause in clauses)
+# def is_ksat(clauses, k: int) -> bool:
+#     return all(len(clause) == k for clause in clauses)
 
 
-# def is_2sat(clauses: list[c_type]) -> bool:
-#     return is_ksat(clauses, 2)
-def is_2sat(expression, variables, literals, clauses) -> bool:
-    return is_ksat(clauses, 2)
-
-
+# # def is_2sat(clauses: list[c_type]) -> bool:
+# #     return is_ksat(clauses, 2)
 # def is_2sat(expression, variables, literals, clauses) -> bool:
-#     return all(1 <= len(clause) <= 2 for clause in clauses)
+#     return is_ksat(clauses, 2)
 
 
-# def is_3sat(clauses: list[c_type]) -> bool:
-# return is_ksat(clauses, 2)
-def is_3sat(expression, variables, literals, clauses) -> bool:
-    return is_ksat(clauses, 2)
+# # def is_2sat(expression, variables, literals, clauses) -> bool:
+# #     return all(1 <= len(clause) <= 2 for clause in clauses)
 
 
-def to_2sat(expression, variables, literals, clauses: list[c_type]) -> list[c_type]:
-    """convert set of clauses with 1 or 2 literlas in consistent 2CNF structure"""
-    rclauses = []
-    for clause in clauses:
-        if len(clause) > 2:  # clause has too many literals
-            dprint(f"clause {clause} has too many literals; must have <= 2")
-            return None
-        if len(clause) < 2:  # clause has 1 literal
-            dprint(f"clause {clause} has 1 literal")
-            clause += clause  # duplicate the clause
-            dprint(f"clause => {clause}")
-        rclauses.append(clause)
-    dprint(f"returning: {rclauses}")
-    return expression, variables, literals, rclauses
+# # def is_3sat(clauses: list[c_type]) -> bool:
+# # return is_ksat(clauses, 2)
+# def is_3sat(expression, variables, literals, clauses) -> bool:
+#     return is_ksat(clauses, 2)
 
 
-def test_to_2sat(expr_str):
-    """
-    used as helper in testing script (since to_2sat needs intermediate values: clauses)
-    parses expression string, passes clause to conversion function
-    """
-    result = to_2sat(*parse_cnf_expression(expr_str))
-    if isinstance(result, tuple):
-        return result[-1]  # last element in tuple returned from to_2sat
-    return result
+# def to_2sat(expression, variables, literals, clauses: list[c_type]) -> list[c_type]:
+#     """convert set of clauses with 1 or 2 literlas in consistent 2CNF structure"""
+#     rclauses = []
+#     for clause in clauses:
+#         if len(clause) > 2:  # clause has too many literals
+#             dprint(f"clause {clause} has too many literals; must have <= 2")
+#             return None
+#         if len(clause) < 2:  # clause has 1 literal
+#             dprint(f"clause {clause} has 1 literal")
+#             clause += clause  # duplicate the clause
+#             dprint(f"clause => {clause}")
+#         rclauses.append(clause)
+#     dprint(f"returning: {rclauses}")
+#     return expression, variables, literals, rclauses
+
+
 
 
 class requirement:

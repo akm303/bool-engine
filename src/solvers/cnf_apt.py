@@ -271,6 +271,7 @@ def run(cnf_expr, run_i=-1):
 
     expression, variables, literals, clauses = setup_ksat(cnf_expr, restrictions=[req_2sat])
     
+    
     expr_counter_str = f" {run_i+1}" if run_i > -1 else " "
     test_title = f"expression{expr_counter_str} ::"
 

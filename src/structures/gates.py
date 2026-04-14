@@ -92,5 +92,6 @@ def main():
 if __name__ == "__main__":
     print("running `gates.py")
     print()
+    main()
 else:
     print("importing `gates.py`")

@@ -384,46 +384,46 @@ def assignment_str(assignment: a_type) -> str:
     return f"{{ {', '.join([f'{k} : {v} ' for k, v in assignment.items()] if assignment else [])}}}"
 
 
-# --------------------------------------------------- #
-def to_syntax(string: str, target_syntax: str):
+# # --------------------------------------------------- #
+# def to_syntax(string: str, target_syntax: str):
 
-    target_syntax = target_syntax.lower()
-    string = string.replace(" ", "")
+#     target_syntax = target_syntax.lower()
+#     string = string.replace(" ", "")
 
-    CANON_OR = " OR "
-    CANON_AND = " AND "
+#     CANON_OR = " OR "
+#     CANON_AND = " AND "
 
-    # convert to a intermediate canonical form
-    string = re.sub(r"(\\lor|\|\||\||\+)", CANON_OR, string)
-    string = re.sub(r"(\\land|&&|&|\.)", CANON_AND, string)
+#     # convert to a intermediate canonical form
+#     string = re.sub(r"(\\lor|\|\||\||\+)", CANON_OR, string)
+#     string = re.sub(r"(\\land|&&|&|\.)", CANON_AND, string)
 
-    or_op = "+"
-    and_op = "."
-    if target_syntax in ["latex"]:
-        or_op = r"\lor "
-        and_op = r"\land "
-    elif target_syntax in ["c", "cpp", "c++"]:
-        or_op = "||"
-        and_op = "&&"
-    elif target_syntax in ["py", "python"]:
-        or_op = "|"
-        and_op = "&"
+#     or_op = "+"
+#     and_op = "."
+#     if target_syntax in ["latex"]:
+#         or_op = r"\lor "
+#         and_op = r"\land "
+#     elif target_syntax in ["c", "cpp", "c++"]:
+#         or_op = "||"
+#         and_op = "&&"
+#     elif target_syntax in ["py", "python"]:
+#         or_op = "|"
+#         and_op = "&"
 
-    string = string.replace(CANON_OR, or_op)
-    string = string.replace(CANON_AND, and_op)
-    return string
-
-
-def to_local(string: str) -> str:
-    return to_syntax(string, "local")
+#     string = string.replace(CANON_OR, or_op)
+#     string = string.replace(CANON_AND, and_op)
+#     return string
 
 
-def to_LaTeX(string: str) -> str:
-    return to_syntax(string, "latex")
+# def to_local(string: str) -> str:
+#     return to_syntax(string, "local")
 
 
-def to_code(string: str, lang: str) -> str:
-    return to_syntax(string, lang)
+# def to_LaTeX(string: str) -> str:
+#     return to_syntax(string, "latex")
+
+
+# def to_code(string: str, lang: str) -> str:
+#     return to_syntax(string, lang)
 
 
 # --------------------------------------------------- #
@@ -449,14 +449,14 @@ def base_variable(literal: l_type) -> v_type:
 # tests
 
 
-def check_testcase(original, expected, actual):
-    case_passed = expected == actual
-    original = f'"{original}"'
-    print(
-        f'  case {original:10}: expected("{expected}") == actual("{actual}")? '
-        f"{'Pass' if case_passed else 'Fail'}"
-    )
-    return case_passed
+# def check_testcase(original, expected, actual):
+#     case_passed = expected == actual
+#     original = f'"{original}"'
+#     print(
+#         f'  case {original:10}: expected("{expected}") == actual("{actual}")? '
+#         f"{'Pass' if case_passed else 'Fail'}"
+#     )
+#     return case_passed
 
 
 # - syntax formatting to local
