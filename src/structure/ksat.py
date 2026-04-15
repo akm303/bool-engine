@@ -1,5 +1,5 @@
-from src.common import *
 from src.structure.parsers import *
+from src.common import *
 
 # --------------------------------------------------- #
 # def is_ksat(clauses: list[c_type], k: int) -> bool:

@@ -106,7 +106,7 @@ from pprint import pformat
 from src.solver.cnf_ksat import parse_cnf_expression, setup_ksat
 from src.solver.cnf_ksat import req_2sat
 from src.structure.implication_graph import build_adj_graph, has_path
-from common import *
+from src.common import *
 
 
 # test outputs to tests directory
@@ -355,7 +355,7 @@ def tests():
 
 
 if __name__ == "__main__":
-    dprint("running `cnf_apt.py`")
+    dprint(f"  running `{os.path.basename(__file__)}`")
     dprint()
     args = parse_flags()
     set_debug(args.debug)
@@ -364,4 +364,4 @@ if __name__ == "__main__":
     else:
         tests()
 else:
-    dprint("importing `cnf_apt.py`")
+    dprint(f"importing `{os.path.basename(__file__)}`" )

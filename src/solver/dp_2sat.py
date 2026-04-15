@@ -292,7 +292,7 @@ def tests():
 
 
 if __name__ == "__main__":
-    dprint("running `dp_2sat.py`")
+    dprint(f"  running `{os.path.basename(__file__)}`")
     dprint()
     args = parse_flags()
     set_debug(args.debug)
@@ -301,4 +301,4 @@ if __name__ == "__main__":
     else:
         tests()
 else:
-    dprint("importing `dp_2sat.py`")
+    dprint(f"importing `{os.path.basename(__file__)}`" )

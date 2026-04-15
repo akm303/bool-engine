@@ -19,7 +19,7 @@ from src.solver.cnf_ksat import run as run_ksat
 
 from src.structure.ksat import *
 from src.utils.syntax import *
-from src.utils.tester import *
+from src.tests.tester import *
 from src.common import *
 
 
@@ -527,7 +527,7 @@ def run_test(test_hook, all_passed_hook=None, test_title="Test: ???"):
 
 
 if __name__ == "__main__":
-    print("running `testing.py")
+    dprint(f"  running `{os.path.basename(__file__)}`")
     print()
     args = parse_flags()
     set_debug(args.debug)
@@ -571,4 +571,4 @@ if __name__ == "__main__":
         print(f"{failed_tests}")
 
 else:
-    dprint("importing `testing.py")
+    dprint(f"importing `{__name__}.py`")

@@ -107,10 +107,10 @@ def full_test():
     return
 
 if __name__ == "__main__":
-    dprint("running `truthtables.py`")
+    dprint(f"  running `{os.path.basename(__file__)}`")
     dprint()
     full_test()
 else:
-    dprint("running `truthtables.py`")
+    dprint(f"importing `{os.path.basename(__file__)}`" )
 
 

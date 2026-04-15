@@ -1,6 +1,7 @@
 from typing import Any, Collection, Callable
 from itertools import count
-from common import dprint, COMPACT
+
+from src.common import dprint, COMPACT
 
 PASS = "Pass"
 FAIL = "Fail"

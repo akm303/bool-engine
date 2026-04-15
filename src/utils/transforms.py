@@ -215,10 +215,10 @@ def test():
 
 
 if __name__ == "__main__":
-    dprint("running `transformers.py`")
+    dprint(f"  running `{os.path.basename(__file__)}`")
     dprint()
     args = parse_flags()
     set_debug(args.debug)
     test()
 else:
-    dprint("importing `expressions.py`")
+    dprint(f"importing `{os.path.basename(__file__)}`" )

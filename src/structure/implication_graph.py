@@ -57,8 +57,8 @@ def main():
 
 
 if __name__ == "__main__":
-    dprint("running `implication_graph.py`")
+    dprint(f"  running `{os.path.basename(__file__)}`")
     dprint()
     main()
 else: 
-    dprint("importing `implication_graph.py`")
+    dprint(f"importing `{os.path.basename(__file__)}`" )
