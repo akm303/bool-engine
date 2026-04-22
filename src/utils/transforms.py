@@ -9,7 +9,8 @@ output formula grows linearly relative to input circuits
 import re
 from itertools import count
 from typing import Tuple
-from common import *
+
+from src.common import *
 
 
 # --------------------------------------------------- #
@@ -214,6 +215,10 @@ def test():
 
 
 if __name__ == "__main__":
+    dprint(f"  running `{os.path.basename(__file__)}`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
     test()
+else:
+    dprint(f"importing `{os.path.basename(__file__)}`" )

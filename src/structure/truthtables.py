@@ -2,6 +2,8 @@
 from enum import Enum
 from typing import Iterable,Collection
 
+from src.common import *
+
 symbols = Enum('Symbols',[
     ('TRUE','1'),
     ('FALSE','0'),
@@ -105,6 +107,10 @@ def full_test():
     return
 
 if __name__ == "__main__":
+    dprint(f"  running `{os.path.basename(__file__)}`")
+    dprint()
     full_test()
+else:
+    dprint(f"importing `{os.path.basename(__file__)}`" )
 
 

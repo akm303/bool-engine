@@ -4,9 +4,168 @@ Docstring for src.common
 type definitions, constants, and functions common across project
 """
 
+import shutil
+import inspect
+import os
+import pathlib
 import re
 import argparse
 from typing import Callable, Iterable, Collection, Tuple
+
+
+# --------------------------------------------------- #
+# Printout Logs/Stdout
+TO_LOG = True
+OVERWRITE_FILES = True
+# TEST_DIRECTORY = "tests"
+# OUTPUT_DIRECTORY = ".outputs"
+# BASE_TEST_FILENAME = "-test.tex"
+# BASE_DEBUG_FILENAME = "-debug.tex"
+COMPACT = True  # compact strings
+EXPANDED = not COMPACT  # expanded output (verbose)
+
+OUTPUT_DIRECTORY = ".outputs"
+
+
+
+# def init_output_dir(output_dir:str = OUTPUT_DIRECTORY):
+#     base_print(f'0. initializing output directory: "{output_dir}/"')
+#     if OVERWRITE_FILES and os.path.exists(output_dir):
+#         base_print(f'   clearing previous directory: "{output_dir}/"')
+#         shutil.rmtree(output_dir)
+#     base_print(f'   making directory: "{output_dir}/"')
+#     os.makedirs(output_dir, exist_ok=True)
+
+
+def get_calling_module() -> str:
+    frame = inspect.stack()[2]  # caller of wrapped printer
+    module = inspect.getmodule(frame[0])
+    if module:
+        # module_name = module.__name__.split(".")[-1]
+        # base_print(f"module_name: {module_name}")
+
+        # return module.__name__
+        
+        return module.__name__.split(".")[-1]
+    return "unknown"
+
+
+# def print_to_file(printer: Callable, output_dir: str | None = OUTPUT_DIRECTORY):
+def print_to_file(printer: Callable, output_dir = OUTPUT_DIRECTORY):
+    """
+    Writes output to stdout and to specified file in output directory
+    note: running files from root directory => output_files must be wrt root directory
+
+    Add line to top of script for any print function (print || dprint) for which
+    statements are to be collectively written to file
+    eg. `dprint = print_to_file(dprint, "debug/debug_outputs.tex")`
+    """
+    # base_print(f'print_to_file: {printer}, "{output_dir}"')
+    if getattr(printer, "_is_wrapped", False):
+        return printer
+
+    # log_file = f"{OUTPUT_DIRECTORY}/log_file"
+    # debug_file = f"{OUTPUT_DIRECTORY}/debug_file"
+    # test_file = f"{OUTPUT_DIRECTORY}/test_file"
+
+    # def resolve_output_file(output_file):
+    #     valid_suffix = [".tex", ".txt", ".md"]
+    #     if output_file:
+    #         if pathlib.Path(output_file).suffix not in valid_suffix:
+    #             output_file = pathlib.Path.with_suffix(".tex")
+    #         return f"{OUTPUT_DIRECTORY}/{output_file}"
+
+    #     caller = get_calling_module()
+    #     return
+
+    # output_file = resolve_output_file(output_file)
+
+    # if OVERWRITE_FILES:
+    #     open(output_file, "w").close()
+
+    # ---- #
+    caller = get_calling_module()
+    output_file = f"{output_dir}/{caller}.md"
+    # base_print(f'1. output_dir + caller: "{output_dir}" + "{caller}" -> output_file: "{output_file}"')
+
+    if not TO_LOG:
+        return printer
+
+    def wrapped_printer(*args, **kwargs):
+        # caller = get_calling_module()
+        # output_file = f"{output_dir}/{caller}.md"
+        # base_print(f'1. output_dir + caller: "{output_dir}" + "{caller}" -> output_file: "{output_file}"')
+
+        # caller = get_calling_module()
+        # output_file = f"{OUTPUT_DIRECTORY}/{caller}.md"
+        
+        outpath = os.path.dirname(output_file)
+        # base_print(f'2. outpath: "{outpath}" -> output_file "{output_file}"')
+        os.makedirs(outpath, exist_ok=True)
+        # base_print(f'   os.makedirs("{outpath}",exist_ok=True)')
+
+        printer(*args, **kwargs)  # print to terminal
+
+        with open(output_file, "a") as f:
+            fkwargs = dict(kwargs)  # print to file
+            fkwargs["file"] = f
+            printer(*args, **fkwargs)
+
+    wrapped_printer._is_wrapped = True
+    return wrapped_printer
+
+
+
+# test outputs to tests directory
+# print = print_to_file(print, "stdout/common.tex")
+
+# def print_to_file(printer: Callable, output_file: str|None = None):
+#     """
+#     Writes output to stdout and to specified file in output directory
+#     note: running files from root directory => output_files must be wrt root directory
+
+#     Add line to top of script for any print function (print || dprint) for which
+#     statements are to be collectively written to file
+#     eg. `dprint = print_to_file(dprint, "debug/debug_outputs.tex")`
+#     """
+
+#     # log_file = f"{OUTPUT_DIRECTORY}/log_file"
+#     # debug_file = f"{OUTPUT_DIRECTORY}/debug_file"
+#     # test_file = f"{OUTPUT_DIRECTORY}/test_file"
+
+#     def resolve_output_file(output_file):
+#         valid_suffix = [".tex", ".txt", ".md"]
+#         if output_file:
+#             if pathlib.Path(output_file).suffix not in valid_suffix:
+#                 output_file = pathlib.Path.with_suffix(".tex")
+#             return f"{OUTPUT_DIRECTORY}/{output_file}"
+
+#         caller = get_calling_module()
+#         return f"{OUTPUT_DIRECTORY}/{caller}.tex"
+
+#     output_file = resolve_output_file(output_file)
+
+#     os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+#     if OVERWRITE_FILES:
+#         open(output_file, "w").close()
+
+#     if TO_LOG:
+#         def wrapped_printer(*args, **kwargs):
+#             printer(*args, **kwargs)  # print to terminal
+
+#             with open(output_file, "a") as f:
+#                 fkwargs = dict(kwargs)  # print to file
+#                 fkwargs["file"] = f
+#                 printer(*args, **fkwargs)
+
+#         return wrapped_printer
+#     return printer
+
+
+# # test outputs to tests directory
+# print = print_to_file(print, "stdout/common.tex")
+
 
 # --------------------------------------------------- #
 # debug helpers
@@ -22,12 +181,38 @@ def set_debug(to_debug: bool):
     DEBUG_PRINT = to_debug
 
 
-
+# @print_to_file
 def dprint(*args, **kwargs):
     """debug print: prints statements only if global DEBUG_PRINT constant set to true"""
-    # args = ' >> debug:',*args
+    # args = f' >> debug:{get_calling_module()}:',*args
     if DEBUG_PRINT:
         print(*args, **kwargs)
+
+
+# dprint = print_to_file(dprint, "debug/common.tex")
+
+
+# dprint = print_to_file(dprint)
+base_print = print
+print = print_to_file(print,OUTPUT_DIRECTORY)
+
+
+# --------------------------------------------------- #
+# argument parsing
+def parse_flags():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d", "--debug", action="store_true"
+    )  # to print debug statements
+    parser.add_argument(
+        "-e",
+        "--expression",
+    )  # to run tests
+    return parser.parse_args()
+
+
+# --------------------------------------------------- #
+# high-level string formatting
 
 
 def sfmt(*varlist: list, fmt=str) -> list[str]:
@@ -38,13 +223,6 @@ def sfmt(*varlist: list, fmt=str) -> list[str]:
 def dfmt(*varlist: list, fmt=str) -> list:
     """format string for debug prints if debug enabled, otherwise return as is"""
     return varlist if not DEBUG_PRINT else sfmt(varlist, fmt=fmt)
-
-
-def parse_flags():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", action="store_true") # to print debug statements
-    parser.add_argument("-e", "--expression", ) # to run tests
-    return parser.parse_args()
 
 
 # --------------------------------------------------- #
@@ -84,8 +262,8 @@ ASSIGNMENT_PATTERN = r":?="
 
 # -------------------------------- #
 # common string constructors
-def bar(n):
-    return "-" * n
+def bar(n,char='-'):
+    return char * n
 
 
 bar40 = bar(40)
@@ -226,46 +404,46 @@ def assignment_str(assignment: a_type) -> str:
     return f"{{ {', '.join([f'{k} : {v} ' for k, v in assignment.items()] if assignment else [])}}}"
 
 
-# --------------------------------------------------- #
-def to_syntax(string: str, target_syntax: str):
+# # --------------------------------------------------- #
+# def to_syntax(string: str, target_syntax: str):
 
-    target_syntax = target_syntax.lower()
-    string = string.replace(" ", "")
+#     target_syntax = target_syntax.lower()
+#     string = string.replace(" ", "")
 
-    CANON_OR = " OR "
-    CANON_AND = " AND "
+#     CANON_OR = " OR "
+#     CANON_AND = " AND "
 
-    # convert to a intermediate canonical form
-    string = re.sub(r"(\\lor|\|\||\||\+)", CANON_OR , string)
-    string = re.sub(r"(\\land|&&|&|\.)", CANON_AND, string)
+#     # convert to a intermediate canonical form
+#     string = re.sub(r"(\\lor|\|\||\||\+)", CANON_OR, string)
+#     string = re.sub(r"(\\land|&&|&|\.)", CANON_AND, string)
 
-    or_op = "+"
-    and_op = "."
-    if target_syntax in ["latex"]:
-        or_op = r"\lor "
-        and_op = r"\land "
-    elif target_syntax in ["c", "cpp", "c++"]:
-        or_op = "||"
-        and_op = "&&"
-    elif target_syntax in ["py", "python"]:
-        or_op = "|"
-        and_op = "&"
+#     or_op = "+"
+#     and_op = "."
+#     if target_syntax in ["latex"]:
+#         or_op = r"\lor "
+#         and_op = r"\land "
+#     elif target_syntax in ["c", "cpp", "c++"]:
+#         or_op = "||"
+#         and_op = "&&"
+#     elif target_syntax in ["py", "python"]:
+#         or_op = "|"
+#         and_op = "&"
 
-    string = string.replace(CANON_OR, or_op)
-    string = string.replace(CANON_AND, and_op)
-    return string
+#     string = string.replace(CANON_OR, or_op)
+#     string = string.replace(CANON_AND, and_op)
+#     return string
 
 
+# def to_local(string: str) -> str:
+#     return to_syntax(string, "local")
 
-def to_local(string: str) -> str:
-    return to_syntax(string,"local")
 
-def to_LaTeX(string: str) -> str:
-    return to_syntax(string,"latex")
+# def to_LaTeX(string: str) -> str:
+#     return to_syntax(string, "latex")
 
-def to_code(string:str,lang:str) -> str:
-    return to_syntax(string,lang)
 
+# def to_code(string: str, lang: str) -> str:
+#     return to_syntax(string, lang)
 
 
 # --------------------------------------------------- #
@@ -291,113 +469,147 @@ def base_variable(literal: l_type) -> v_type:
 # tests
 
 
-def check_testcase(original, expected, actual):
-    case_passed = expected == actual
-    original = f'"{original}"'
-    print(
-        f'  case {original:10}: expected("{expected}") == actual("{actual}")? '
-        f"{'Pass' if case_passed else 'Fail'}"
-    )
-    return case_passed
+# def check_testcase(original, expected, actual):
+#     case_passed = expected == actual
+#     original = f'"{original}"'
+#     print(
+#         f'  case {original:10}: expected("{expected}") == actual("{actual}")? '
+#         f"{'Pass' if case_passed else 'Fail'}"
+#     )
+#     return case_passed
 
 
 # - syntax formatting to local
-def test_syntax():
-    def to_local_test():
-        local_syntax_tests = {
-            # and-based cases
-            r"a&a": "a.a",
-            r"a&&b": "a.b",
-            r"a.c": "a.c",
-            r"a\land d": "a.d",
-            r"a\lande": "a.e",
-            # or-based cases
-            r"a|a": "a+a",
-            r"a||b": "a+b",
-            r"a+c": "a+c",
-            r"a\lor d": "a+d",
-            r"a\lore": "a+e",
-        }
+# def test_syntax():
+#     def to_local_test():
+#         local_syntax_tests = {
+#             # and-based cases
+#             r"a&a": "a.a",
+#             r"a&&b": "a.b",
+#             r"a.c": "a.c",
+#             r"a\land d": "a.d",
+#             r"a\lande": "a.e",
+#             # or-based cases
+#             r"a|a": "a+a",
+#             r"a||b": "a+b",
+#             r"a+c": "a+c",
+#             r"a\lor d": "a+d",
+#             r"a\lore": "a+e",
+#         }
 
-        total_results = []
-        for test_case, test_expected in local_syntax_tests.items():
-            test_actual = to_local(test_case)
-            case_passed = check_testcase(test_case, test_expected, test_actual)
-            total_results.append(case_passed)
-        return total_results
+#         total_results = []
+#         for test_case, test_expected in local_syntax_tests.items():
+#             test_actual = to_local(test_case)
+#             case_passed = check_testcase(test_case, test_expected, test_actual)
+#             total_results.append(case_passed)
+#         return total_results
 
-    def from_local_test():
-        syntax_tests = {
-            "latex": {
-                # and-based cases
-                r"a&a": r"a\land a",
-                r"a&&b": r"a\land b",
-                r"a.c": r"a\land c",
-                r"a\land d": r"a\land d",
-                r"a\lande": r"a\land e",
-                # or-based cases
-                r"a|a": r"a\lor a",
-                r"a||b": r"a\lor b",
-                r"a+c": r"a\lor c",
-                r"a\lor d": r"a\lor d",
-                r"a\lore": r"a\lor e",
-            },
-            "code": {
-                # and-based cases
-                r"a&a": "a&a",
-                r"a&&b": "a&b",
-                r"a.c": "a&c",
-                r"a\land d": "a&d",
-                r"a\lande": "a&e",
-                # or-based cases
-                r"a|a": "a|a",
-                r"a||b": "a|b",
-                r"a+c": "a|c",
-                r"a\lor d": "a|d",
-                r"a\lore": "a|e",
-            },
-        }
+#     def from_local_test():
+#         syntax_tests = {
+#             "latex": {
+#                 # and-based cases
+#                 r"a&a": r"a\land a",
+#                 r"a&&b": r"a\land b",
+#                 r"a.c": r"a\land c",
+#                 r"a\land d": r"a\land d",
+#                 r"a\lande": r"a\land e",
+#                 # or-based cases
+#                 r"a|a": r"a\lor a",
+#                 r"a||b": r"a\lor b",
+#                 r"a+c": r"a\lor c",
+#                 r"a\lor d": r"a\lor d",
+#                 r"a\lore": r"a\lor e",
+#             },
+#             "code": {
+#                 # and-based cases
+#                 r"a&a": "a&a",
+#                 r"a&&b": "a&b",
+#                 r"a.c": "a&c",
+#                 r"a\land d": "a&d",
+#                 r"a\lande": "a&e",
+#                 # or-based cases
+#                 r"a|a": "a|a",
+#                 r"a||b": "a|b",
+#                 r"a+c": "a|c",
+#                 r"a\lor d": "a|d",
+#                 r"a\lore": "a|e",
+#             },
+#         }
 
-        test_funcs = {
-            "latex": to_LaTeX,
-            "code": to_code,
-        }
+#         test_funcs = {
+#             "latex": to_LaTeX,
+#             "code": to_code,
+#         }
 
-        total_results = []
-        for test_lang, test_cases in syntax_tests.items():
-            if test_lang == "code":
-                for i, lang in enumerate(["py", "c"]):
-                    print(f"testing for conversion to {test_lang}::{lang}")
-                    for test_case, test_expected in test_cases.items():
-                        test_expected = test_expected.replace("&", "&" * (i + 1))
-                        test_expected = test_expected.replace("|", "|" * (i + 1))
-                        test_actual = test_funcs[test_lang](test_case, lang)
-                        case_passed = check_testcase(
-                            test_case, test_expected, test_actual
-                        )
-                        total_results.append(case_passed)
-                        # total_results.append((test_case,test_expected,test_actual,case_passed))
-            else:
-                print(f"testing for conversion to {test_lang}")
-                for test_case, test_expected in test_cases.items():
-                    test_actual = test_funcs[test_lang](test_case)
-                    case_passed = check_testcase(test_case, test_expected, test_actual)
-                    total_results.append(case_passed)
-        return total_results
+#         total_results = []
+#         for test_lang, test_cases in syntax_tests.items():
+#             if test_lang == "code":
+#                 for i, lang in enumerate(["py", "c"]):
+#                     print(f"testing for conversion to {test_lang}::{lang}")
+#                     for test_case, test_expected in test_cases.items():
+#                         test_expected = test_expected.replace("&", "&" * (i + 1))
+#                         test_expected = test_expected.replace("|", "|" * (i + 1))
+#                         test_actual = test_funcs[test_lang](test_case, lang)
+#                         case_passed = check_testcase(
+#                             test_case, test_expected, test_actual
+#                         )
+#                         total_results.append(case_passed)
+#                         # total_results.append((test_case,test_expected,test_actual,case_passed))
+#             else:
+#                 print(f"testing for conversion to {test_lang}")
+#                 for test_case, test_expected in test_cases.items():
+#                     test_actual = test_funcs[test_lang](test_case)
+#                     case_passed = check_testcase(test_case, test_expected, test_actual)
+#                     total_results.append(case_passed)
+#         return total_results
 
-    print("Running Tests:")
-    total_results = []
-    total_results += to_local_test()
-    total_results += from_local_test()
+#     print("Running Tests:")
+#     total_results = []
+#     total_results += to_local_test()
+#     total_results += from_local_test()
 
-    final_result = all(r == True for r in total_results)
-    print(f"\nAll test cases passed? {final_result}")
-    return total_results
+#     final_result = all(r == True for r in total_results)
+#     print(f"\nAll test cases passed? {final_result}")
+#     return total_results
 
+
+def step_through_generator(
+    generator: Iterable, element_type: str = "element", step_mode: bool = True
+):
+    not_all_components_extracted = True
+    outputs = []
+    if step_mode:
+        userin = input()
+        while userin in ["\n", "", " "] and not_all_components_extracted:
+            try:
+                element = next(generator)
+                outputs.append(element)
+                print(f"<< {element_type}: {element} >>")
+                userin = input()
+            except:
+                not_all_components_extracted = False
+
+    else:
+        while not_all_components_extracted:
+            try:
+                element = next(generator)
+                outputs.append(element)
+                dprint(f"<< {element_type}: {element} >>")
+            except:
+                not_all_components_extracted = False
+    return outputs
+
+
+# init_output_dir()
 
 if __name__ == "__main__":
+    dprint(f"  running `{os.path.basename(__file__)}`")
+    dprint()
     args = parse_flags()
     set_debug(args.debug)
 
-    tests = test_syntax
-    tests()
+    # tests = test_syntax
+    # tests()
+
+else:
+    dprint(f"importing `{os.path.basename(__file__)}`" )

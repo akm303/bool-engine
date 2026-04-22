@@ -4,6 +4,7 @@ from collections import namedtuple
 from itertools import count, combinations
 from typing import Tuple, Any
 
+from src.common import *
 
 # -------------------------- #
 #          Objects           #
@@ -150,7 +151,8 @@ def obj_str(obj_list: list, indent=0):
 # -------------------------- #
 
 if __name__ == "__main__":
-
+    dprint(f"  running `{os.path.basename(__file__)}`")
+    dprint()
     # -------------------------- #
     #           tests            #
     # -------------------------- #
@@ -347,3 +349,5 @@ if __name__ == "__main__":
         ]
 
         tlogger.info("\n".join(event_lines))
+else:
+    dprint(f"importing `{os.path.basename(__file__)}`" )

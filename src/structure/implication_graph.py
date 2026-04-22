@@ -1,7 +1,11 @@
 from typing import Tuple
 from pprint import pformat
 
-from common import *
+from src.common import *
+
+
+# print = print_to_file(dprint, "stdout/implication_graph.tex")
+# dprint = print_to_file(dprint, "debug/implication_graph.tex")
 
 
 # -------------------------------- #
@@ -10,9 +14,10 @@ def build_adj_graph(nodes: list[node_type], edges: list[edge_type]) -> graph_typ
     """build implication graph with vertices x_i and x_i' for each i"""
     adjacency = {n: set() for n in nodes}
 
+    dprint("adding edges:")
     for edge in edges:
         dprint(
-            f"adding edge: {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}"
+            f" {edge_str(edge)} to adj: {adjgraph_str(adjacency,one_line=True)}"
         )
         u, v = edge
         adjacency[u].add(v)
@@ -30,7 +35,7 @@ def get_reachable(start_node: node_type, adj_graph: graph_type):
         return reachable
 
     reachable = dfs(start_node, set(), adj_graph)
-    # print(f"  reachable from {start_node}: {reachable}")
+    print(f"  reachable from {node_str(start_node)}: {nodes_str(reachable)}")
     return reachable[1:]
 
 
@@ -52,4 +57,8 @@ def main():
 
 
 if __name__ == "__main__":
+    dprint(f"  running `{os.path.basename(__file__)}`")
+    dprint()
     main()
+else: 
+    dprint(f"importing `{os.path.basename(__file__)}`" )
