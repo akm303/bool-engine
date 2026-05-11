@@ -10,12 +10,14 @@ import re
 from typing import Callable, Iterable, Collection, Tuple
 
 from src.utils.printouts import (
-    OUTPUT_DIRECTORY,
+    # OUTPUT_DIRECTORY,
     TO_LOG,
     OVERWRITE_FILES,
     COMPACT,
     EXPANDED,
     print_to_file,
+    base_print,
+    print,
 )
 
 
@@ -33,7 +35,6 @@ def set_debug(to_debug: bool):
     DEBUG_PRINT = to_debug
 
 
-# @print_to_file
 def dprint(*args, **kwargs):
     """debug print: prints statements only if global DEBUG_PRINT constant set to true"""
     # args = f' >> debug:{get_calling_module()}:',*args
@@ -41,12 +42,7 @@ def dprint(*args, **kwargs):
         print(*args, **kwargs)
 
 
-# dprint = print_to_file(dprint, "debug/common.tex")
-
-
-# dprint = print_to_file(dprint)
-base_print = print
-print = print_to_file(print, OUTPUT_DIRECTORY)
+# print = print_to_file(print, OUTPUT_DIRECTORY)
 
 
 # --------------------------------------------------- #
@@ -319,17 +315,6 @@ def base_variable(literal: l_type) -> v_type:
 # --------------------------------------------------- #
 # --------------------------------------------------- #
 # tests
-
-
-# def check_testcase(original, expected, actual):
-#     case_passed = expected == actual
-#     original = f'"{original}"'
-#     print(
-#         f'  case {original:10}: expected("{expected}") == actual("{actual}")? '
-#         f"{'Pass' if case_passed else 'Fail'}"
-#     )
-#     return case_passed
-
 
 # - syntax formatting to local
 # def test_syntax():
